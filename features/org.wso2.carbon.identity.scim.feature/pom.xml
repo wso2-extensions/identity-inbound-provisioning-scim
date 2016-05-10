@@ -45,11 +45,6 @@
             <version>${project.version}</version>
             <type>zip</type>
         </dependency>
-<!--        <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
-            <artifactId>org.wso2.carbon.identity.scim.ui.feature</artifactId>
-            <type>zip</type>
-        </dependency> -->
     </dependencies>
 
     <build>
@@ -75,8 +70,6 @@
                                 <includedFeatureDef>
                                     org.wso2.carbon.identity:org.wso2.carbon.identity.scim.provider.feature
                                 </includedFeatureDef>
-                              <!--  <includedFeatureDef>org.wso2.carbon.identity:org.wso2.carbon.identity.scim.ui.feature
-                                </includedFeatureDef> -->
                             </includedFeatures>
                         </configuration>
                     </execution>
