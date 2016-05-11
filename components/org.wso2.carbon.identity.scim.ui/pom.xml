@@ -54,12 +54,10 @@
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.scim.common</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.scim.common.stub</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
