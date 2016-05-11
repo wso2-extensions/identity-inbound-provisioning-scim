@@ -21,12 +21,13 @@
     <parent>
         <groupId>org.wso2.carbon.identity</groupId>
         <artifactId>identity-extension-parent</artifactId>
-        <version>5.0.9-SNAPSHOT</version>
+        <version>5.1.0</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>identity-inbound-provisioning-scim</artifactId>
     <packaging>pom</packaging>
+    <version>5.0.9-SNAPSHOT</version>
     <name>WSO2 Carbon - SCIM Provisioning Module</name>
     <description>
 
@@ -195,7 +196,7 @@
         <charon.core.imp.pkg.version.range>[2.0.1,3.0.0)</charon.core.imp.pkg.version.range>
         <jsr311-api.version>1.1.1</jsr311-api.version>
         <cxf-bundle.wso2.version>2.6.1.wso2v2</cxf-bundle.wso2.version>
-        <inbound.auth.oauth.version>5.1.1-SNAPSHOT</inbound.auth.oauth.version>
+        <inbound.auth.oauth.version>5.1.0</inbound.auth.oauth.version>
     </properties>
 
 </project>
