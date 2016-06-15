@@ -36,6 +36,12 @@
 <%@ page import="java.util.ResourceBundle" %>
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     String providerId = request.getParameter("providerId");
     String username = request.getParameter("username");
     String password = request.getParameter("password");

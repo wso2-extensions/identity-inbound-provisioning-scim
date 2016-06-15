@@ -34,8 +34,14 @@
 <jsp:include page="../dialog/display_messages.jsp"/>
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     String providerId = request.getParameter("providerId");
-    String forwardTo = "my-scim-index.jsp";
+    String forwardTo = "index.jsp";
     String BUNDLE = "org.wso2.carbon.identity.scim.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
 
@@ -45,8 +51,8 @@
         ConfigurationContext configContext =
                 (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
         SCIMConfigAdminClient client = new SCIMConfigAdminClient(cookie, backendServerURL, configContext);
-        String userName = (String) session.getAttribute(CarbonConstants.LOGGED_USER);
-        client.deleteUserProvider(SCIMUIUtils.getUserConsumerId(userName), providerId);
+
+        client.deleteGlobalProvider(SCIMUIUtils.getGlobalConsumerId(), providerId);
         String message = resourceBundle.getString("scim.provider.removed.successfully");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
     } catch (Exception e) {

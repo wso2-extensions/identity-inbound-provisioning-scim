@@ -66,7 +66,7 @@
                 }
             </script>
 
-            <form method="post" name="addProviderForm" action="add-finish.jsp"
+            <form method="post" name="addProviderForm" action="add-finish-ajaxprocessor.jsp"
                   target="_self">
                 <table style="width: 100%" class="styledLeft">
                     <thead>
