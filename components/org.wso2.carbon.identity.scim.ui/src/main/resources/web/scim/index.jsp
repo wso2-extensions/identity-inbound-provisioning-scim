@@ -119,10 +119,26 @@
         <div id="workArea">
             <script type="text/javascript">
                 function itemRemove(providerId) {
-                    CARBON.showConfirmationDialog("<fmt:message key='remove.message1'/>" + providerId + "<fmt:message key='remove.message2'/>",
-                                                  function () {
-                                                      location.href = "remove-provider.jsp?providerId=" + providerId;
-                                                  }, null);
+
+                    function doDelete() {
+                        $.ajax({
+                            type: 'POST',
+                            url: 'remove-provider-ajaxprocessor.jsp',
+                            headers: {
+                                Accept: "text/html"
+                            },
+                            data: 'providerId=' + providerId,
+                            async: false,
+                            success: function (responseText, status) {
+                                if (status == "success") {
+                                    location.assign("index.jsp");
+                                }
+                            }
+                        });
+                    }
+
+                    CARBON.showConfirmationDialog('<fmt:message key='remove.message1'/>' + providerId + '<fmt:message key='remove.message2'/>',
+                            doDelete, null);
                 }
             </script>
             <div style="height:30px;">

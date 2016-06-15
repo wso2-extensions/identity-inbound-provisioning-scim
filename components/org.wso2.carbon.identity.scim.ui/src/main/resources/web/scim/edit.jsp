@@ -116,7 +116,7 @@
                 }
             </script>
 
-            <form method="post" name="editProviderform" action="edit-finish.jsp" target="_self">
+            <form method="post" name="editProviderform" action="edit-finish-ajaxprocessor.jsp" target="_self">
                 <table style="width: 100%" class="styledLeft">
                     <thead>
                     <tr>

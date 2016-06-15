@@ -24,25 +24,30 @@
 <%@page import="org.wso2.carbon.identity.scim.ui.client.SCIMConfigAdminClient" %>
 <%@page import="org.wso2.carbon.identity.scim.ui.utils.SCIMUIUtils" %>
 <%@page import="org.wso2.carbon.ui.CarbonUIMessage" %>
-
 <%@page import="org.wso2.carbon.ui.CarbonUIUtil" %>
-><script type="text/javascript" src="extensions/js/vui.js"></script>
+<%@page import="org.wso2.carbon.ui.util.CharacterEncoder" %>
+
+<%@page import="org.wso2.carbon.utils.ServerConstants" %>
+<%@page import="java.util.ResourceBundle" %>
+<script type="text/javascript" src="extensions/js/vui.js"></script>
 <script type="text/javascript" src="../extensions/core/js/vui.js"></script>
 <script type="text/javascript" src="../admin/js/main.js"></script>
 
 <jsp:include page="../dialog/display_messages.jsp"/>
-<%@ page import="org.wso2.carbon.ui.util.CharacterEncoder" %>
-<%@ page import="org.wso2.carbon.utils.ServerConstants" %>
-<%@ page import="java.util.ResourceBundle" %>
 
 <%
+    String httpMethod = request.getMethod();
+    if (!"post".equalsIgnoreCase(httpMethod)) {
+        response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        return;
+    }
+
     String providerId = request.getParameter("providerId");
     String username = request.getParameter("username");
     String password = request.getParameter("password");
     String userURL = request.getParameter("userURL");
     String groupURL = request.getParameter("groupURL");
-
-    String forwardTo = "my-scim-index.jsp";
+    String forwardTo = "index.jsp";
     String BUNDLE = "org.wso2.carbon.identity.scim.ui.i18n.Resources";
     ResourceBundle resourceBundle = ResourceBundle.getBundle(BUNDLE, request.getLocale());
     SCIMProviderDTO provider = new SCIMProviderDTO();
@@ -53,19 +58,20 @@
             ConfigurationContext configContext =
                     (ConfigurationContext) config.getServletContext().getAttribute(CarbonConstants.CONFIGURATION_CONTEXT);
             SCIMConfigAdminClient client = new SCIMConfigAdminClient(cookie, backendServerURL, configContext);
+
             provider.setProviderId(providerId);
             provider.setUserName(username);
             provider.setPassword(password);
             provider.setUserEPURL(userURL);
             provider.setGroupEPURL(groupURL);
-            String userName = (String) session.getAttribute(CarbonConstants.LOGGED_USER);
-            client.addUserProvider(SCIMUIUtils.getUserConsumerId(userName), provider);
-            String message = resourceBundle.getString("provider.added.successfully");
+            client.updateGlobalProvider(SCIMUIUtils.getGlobalConsumerId(), provider);
+            String message = resourceBundle.getString("provider.updated.successfully");
             CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.INFO, request);
         
     } catch (Exception e) {
-        String message = resourceBundle.getString("error.while.adding.provider") + " : " + e.getMessage();
+        String message = resourceBundle.getString("error.while.updating.provider");
         CarbonUIMessage.sendCarbonUIMessage(message, CarbonUIMessage.ERROR, request, e);
+        forwardTo = "../admin/error.jsp";
     }
 %>
 
