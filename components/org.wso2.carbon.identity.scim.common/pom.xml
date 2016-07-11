@@ -137,12 +137,12 @@
                             org.wso2.carbon.user.api; version="${carbon.user.api.imp.pkg.version.range}",
                             org.wso2.charon.core.*;version="${charon.core.imp.pkg.version.range}",
 
-                            org.wso2.carbon.identity.base; version="${carbon.identity.package.import.version.range}",
-                            org.wso2.carbon.identity.core.*; version="${carbon.identity.package.import.version.range}",
+                            org.wso2.carbon.identity.base; version="${identity.framework.version}",
+                            org.wso2.carbon.identity.core.*; version="${identity.framework.version}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.scim.common.internal,
-                            org.wso2.carbon.identity.scim.common.*; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.scim.common.*; version="${identity.inbound.provisioning.scim.export.version}"
                         </Export-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>

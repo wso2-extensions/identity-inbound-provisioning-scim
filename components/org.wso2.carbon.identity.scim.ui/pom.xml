@@ -103,11 +103,12 @@
                             org.osgi.service.component; version="${osgi.service.component.imp.pkg.version.range}",
                             org.wso2.carbon.context; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.identity.scim.common.stub.*;
-                            version="${carbon.identity.package.import.version.range}",
+                            version="${scim.common.imp.pkg.version.range}",
                         </Import-Package>
                         <Export-Package>
                             !org.wso2.carbon.identity.scim.ui.internal,
-                            org.wso2.carbon.identity.scim.ui.*; version="${carbon.identity.package.export.version}"
+                            org.wso2.carbon.identity.scim.ui.*;
+                            version="${identity.inbound.provisioning.scim.export.version}"
                         </Export-Package>
                         <Carbon-Component>UIBundle</Carbon-Component>
                     </instructions>
