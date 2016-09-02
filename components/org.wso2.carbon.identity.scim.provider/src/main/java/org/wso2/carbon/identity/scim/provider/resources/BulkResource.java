@@ -18,15 +18,15 @@
 
 package org.wso2.carbon.identity.scim.provider.resources;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.scim.provider.impl.IdentitySCIMManager;
 import org.wso2.carbon.identity.scim.provider.util.JAXRSResponseBuilder;
 import org.wso2.charon.core.encoder.Encoder;
 import org.wso2.charon.core.exceptions.CharonException;
 import org.wso2.charon.core.exceptions.FormatNotSupportedException;
 import org.wso2.charon.core.extensions.UserManager;
-import org.wso2.charon.core.protocol.ResponseCodeConstants;
 import org.wso2.charon.core.protocol.SCIMResponse;
-import org.wso2.charon.core.protocol.endpoints.AbstractResourceEndpoint;
 import org.wso2.charon.core.protocol.endpoints.BulkResourceEndpoint;
 import org.wso2.charon.core.schema.SCIMConstants;
 
@@ -36,7 +36,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
 @Path("/")
-public class BulkResource {
+public class BulkResource extends AbstractResource{
+    private static Log logger = LogFactory.getLog(BulkResource.class);
+
     @POST
     public Response createUser(@HeaderParam(SCIMConstants.CONTENT_TYPE_HEADER) String inputFormat,
                                @HeaderParam(SCIMConstants.ACCEPT_HEADER) String outputFormat,
@@ -61,8 +63,7 @@ public class BulkResource {
             encoder = identitySCIMManager.getEncoder(SCIMConstants.identifyFormat(outputFormat));
 
             //obtain the user store manager
-            UserManager userManager = identitySCIMManager.getInstance().getUserManager(
-                    authorization);
+            UserManager userManager = identitySCIMManager.getUserManager(authorization);
 
             BulkResourceEndpoint bulkResourceEndpoint = new BulkResourceEndpoint();
             SCIMResponse responseString = bulkResourceEndpoint.processBulkData(resourceString,
@@ -74,15 +75,9 @@ public class BulkResource {
             return new JAXRSResponseBuilder().buildResponse(responseString);
 
         } catch (CharonException e) {
-            //create SCIM response with code as the same of exception and message as error message of the exception
-            if (e.getCode() == -1) {
-                e.setCode(ResponseCodeConstants.CODE_INTERNAL_SERVER_ERROR);
-            }
-            return new JAXRSResponseBuilder().buildResponse(
-                    AbstractResourceEndpoint.encodeSCIMException(encoder, e));
+            return handleCharonException(e, encoder);
         } catch (FormatNotSupportedException e) {
-            return new JAXRSResponseBuilder().buildResponse(
-                    AbstractResourceEndpoint.encodeSCIMException(encoder, e));
+            return handleFormatNotSupportedException(e);
         }
     }
 }

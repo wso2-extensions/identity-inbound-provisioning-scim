@@ -194,8 +194,7 @@ public class GroupResource extends AbstractResource {
                                                                             userManager, outputFormat);
                 } else if (sortBy != null) {
                     scimResponse = groupResourceEndpoint.listBySort(sortBy, sortOrder, userManager, outputFormat);
-                } else if (searchAttribute == null && filter == null && startIndex == null &&
-                           count == null && sortBy == null) {
+                } else if (startIndex == null && count == null) {
                     scimResponse = groupResourceEndpoint.list(userManager, outputFormat);
                 } else {
                     //bad request
@@ -218,21 +217,9 @@ public class GroupResource extends AbstractResource {
             return new JAXRSResponseBuilder().buildResponse(scimResponse);
 
         } catch (CharonException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            //create SCIM response with code as the same of exception and message as error message of the exception
-            if (e.getCode() == -1) {
-                e.setCode(ResponseCodeConstants.CODE_INTERNAL_SERVER_ERROR);
-            }
-            return new JAXRSResponseBuilder().buildResponse(
-                    AbstractResourceEndpoint.encodeSCIMException(encoder, e));
+            return handleCharonException(e, encoder);
         } catch (FormatNotSupportedException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            return new JAXRSResponseBuilder().buildResponse(
-                    AbstractResourceEndpoint.encodeSCIMException(encoder, e));
+            return handleFormatNotSupportedException(e);
         } catch (BadRequestException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug(e.getMessage(), e);
