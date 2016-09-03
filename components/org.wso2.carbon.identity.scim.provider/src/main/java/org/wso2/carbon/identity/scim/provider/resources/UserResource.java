@@ -82,19 +82,9 @@ public class UserResource extends AbstractResource {
             return new JAXRSResponseBuilder().buildResponse(scimResponse);
 
         } catch (CharonException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            // create SCIM response with code as the same of exception and message as error message
-            // of the exception
-            if (e.getCode() == -1) {
-                e.setCode(ResponseCodeConstants.CODE_INTERNAL_SERVER_ERROR);
-            }
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleCharonException(e,encoder);
         } catch (FormatNotSupportedException e) {
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleFormatNotSupportedException(e);
         }
     }
 
@@ -125,8 +115,7 @@ public class UserResource extends AbstractResource {
             encoder = identitySCIMManager.getEncoder(SCIMConstants.identifyFormat(outputFormat));
 
             // obtain the user store manager
-            UserManager userManager = IdentitySCIMManager.getInstance().getUserManager(
-                    authorization);
+            UserManager userManager = identitySCIMManager.getUserManager(authorization);
 
             // create charon-SCIM user endpoint and hand-over the request.
             UserResourceEndpoint userResourceEndpoint = new UserResourceEndpoint();
@@ -137,22 +126,9 @@ public class UserResource extends AbstractResource {
             return new JAXRSResponseBuilder().buildResponse(response);
 
         } catch (CharonException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            // create SCIM response with code as the same of exception and message as error message
-            // of the exception
-            if (e.getCode() == -1) {
-                e.setCode(ResponseCodeConstants.CODE_INTERNAL_SERVER_ERROR);
-            }
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleCharonException(e, encoder);
         } catch (FormatNotSupportedException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleFormatNotSupportedException(e);
         }
     }
 
@@ -189,22 +165,9 @@ public class UserResource extends AbstractResource {
             return new JAXRSResponseBuilder().buildResponse(scimResponse);
 
         } catch (CharonException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            // create SCIM response with code as the same of exception and message as error message
-            // of the exception
-            if (e.getCode() == -1) {
-                e.setCode(ResponseCodeConstants.CODE_INTERNAL_SERVER_ERROR);
-            }
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleCharonException(e, encoder);
         } catch (FormatNotSupportedException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleFormatNotSupportedException(e);
         }
     }
 
@@ -245,22 +208,9 @@ public class UserResource extends AbstractResource {
             return new JAXRSResponseBuilder().buildResponse(scimResponse);
 
         } catch (CharonException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            // create SCIM response with code as the same of exception and message as error message
-            // of the exception
-            if (e.getCode() == -1) {
-                e.setCode(ResponseCodeConstants.CODE_INTERNAL_SERVER_ERROR);
-            }
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleCharonException(e, encoder);
         } catch (FormatNotSupportedException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleFormatNotSupportedException(e);
         } catch (BadRequestException e) {
             if (logger.isDebugEnabled()) {
                 logger.debug(e.getMessage(), e);
@@ -310,22 +260,9 @@ public class UserResource extends AbstractResource {
             return new JAXRSResponseBuilder().buildResponse(response);
 
         } catch (CharonException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            // create SCIM response with code as the same of exception and message as error message
-            // of the exception
-            if (e.getCode() == -1) {
-                e.setCode(ResponseCodeConstants.CODE_INTERNAL_SERVER_ERROR);
-            }
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleCharonException(e, encoder);
         } catch (FormatNotSupportedException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleFormatNotSupportedException(e);
         }
     }
 
@@ -369,18 +306,9 @@ public class UserResource extends AbstractResource {
             return new JAXRSResponseBuilder().buildResponse(response);
 
         } catch (CharonException e) {
-            logger.error("Charon Exception raised while executing PATCH request.", e);
-            // create SCIM response with code as the same of exception and message as error message
-            // of the exception
-            if (e.getCode() == -1) {
-                e.setCode(ResponseCodeConstants.CODE_INTERNAL_SERVER_ERROR);
-            }
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleCharonException(e, encoder);
         } catch (FormatNotSupportedException e) {
-            logger.error("Request format is not supported.", e);
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleFormatNotSupportedException(e);
         }
     }
 
@@ -413,22 +341,9 @@ public class UserResource extends AbstractResource {
             return new JAXRSResponseBuilder().buildResponse(scimResponse);
 
         } catch (CharonException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            // create SCIM response with code as the same of exception and message as error message
-            // of the exception
-            if (e.getCode() == -1) {
-                e.setCode(ResponseCodeConstants.CODE_INTERNAL_SERVER_ERROR);
-            }
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleCharonException(e, encoder);
         } catch (FormatNotSupportedException e) {
-            if (logger.isDebugEnabled()) {
-                logger.debug(e.getMessage(), e);
-            }
-            return new JAXRSResponseBuilder().buildResponse(AbstractResourceEndpoint
-                    .encodeSCIMException(encoder, e));
+            return handleFormatNotSupportedException(e);
         }
     }
 
