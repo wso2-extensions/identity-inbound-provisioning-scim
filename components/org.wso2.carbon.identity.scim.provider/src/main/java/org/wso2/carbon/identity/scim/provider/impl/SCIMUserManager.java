@@ -255,9 +255,11 @@ public class SCIMUserManager implements UserManager {
                         userName = userName.split("\\" + UserCoreConstants.NAME_COMBINER)[0];
                     }
                     User scimUser = this.getSCIMMetaUser(userName);
-                    Map<String, Attribute> attrMap = scimUser.getAttributeList();
-                    if (attrMap != null && !attrMap.isEmpty()) {
-                        users.add(scimUser);
+                    if (scimUser != null) {
+                        Map<String, Attribute> attrMap = scimUser.getAttributeList();
+                        if (attrMap != null && !attrMap.isEmpty()) {
+                            users.add(scimUser);
+                        }
                     }
                 }
             }
@@ -313,7 +315,7 @@ public class SCIMUserManager implements UserManager {
 
                     scimUser = this.getSCIMMetaUser(userName);
                     //if SCIM-ID is not present in the attributes, skip
-                    if (scimUser.getId() == null) {
+                    if (scimUser != null && StringUtils.isBlank(scimUser.getId())) {
                         continue;
                     }
                     filteredUsers.add(scimUser);
@@ -1276,7 +1278,7 @@ public class SCIMUserManager implements UserManager {
         }
     }
 
-    private User getSCIMMetaUser(String userName) throws CharonException {
+    private User getSCIMMetaUser(String userName) {
 
         List<String> claimURIList = new ArrayList<>();
         claimURIList.add(SCIMConstants.ID_URI);
@@ -1292,7 +1294,7 @@ public class SCIMUserManager implements UserManager {
             scimUser = (User) AttributeMapper.constructSCIMObjectFromAttributes(
                     attributes, SCIMConstants.USER_INT);
         } catch (UserStoreException | CharonException | NotFoundException e) {
-            throw new CharonException("Error in getting user information from Carbon User Store for " +
+            log.error("Error in getting user information from Carbon User Store for " +
                     "user: " + userName + " ", e);
         }
         return scimUser;
