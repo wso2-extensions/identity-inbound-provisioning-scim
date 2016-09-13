@@ -19,7 +19,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-        <groupId>org.wso2.carbon.identity</groupId>
+        <groupId>org.wso2.carbon.identity.inbound.provisioning.scim</groupId>
         <artifactId>identity-inbound-provisioning-scim</artifactId>
         <relativePath>../../pom.xml</relativePath>
         <version>5.1.3-SNAPSHOT</version>
@@ -34,12 +34,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.inbound.provisioning.scim</groupId>
             <artifactId>org.wso2.carbon.identity.scim.provider.feature</artifactId>
             <type>zip</type>
         </dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.inbound.provisioning.scim</groupId>
             <artifactId>org.wso2.carbon.identity.scim.common.feature</artifactId>
             <type>zip</type>
         </dependency>
@@ -63,10 +63,10 @@
                             <propertiesFile>../etc/feature.properties</propertiesFile>
                             <includedFeatures>
                                 <includedFeatureDef>
-                                    org.wso2.carbon.identity:org.wso2.carbon.identity.scim.common.feature
+                                    org.wso2.carbon.identity.inbound.provisioning.scim:org.wso2.carbon.identity.scim.common.feature
                                 </includedFeatureDef>
                                 <includedFeatureDef>
-                                    org.wso2.carbon.identity:org.wso2.carbon.identity.scim.provider.feature
+                                    org.wso2.carbon.identity.inbound.provisioning.scim:org.wso2.carbon.identity.scim.provider.feature
                                 </includedFeatureDef>
                             </includedFeatures>
                         </configuration>
