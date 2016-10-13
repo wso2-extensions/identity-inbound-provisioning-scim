@@ -21,6 +21,9 @@ package org.wso2.carbon.identity.scim.provider.resources;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.wso2.carbon.identity.jaxrs.designator.PATCH;
 import org.wso2.carbon.identity.scim.provider.impl.IdentitySCIMManager;
 import org.wso2.carbon.identity.scim.provider.util.JAXRSResponseBuilder;
@@ -338,8 +341,20 @@ public class UserResource extends AbstractResource {
             SCIMResponse scimResponse = null;
             scimResponse = userResourceEndpoint.listByFilter(filter, userManager, format);
 
-            return new JAXRSResponseBuilder().buildResponse(scimResponse);
+            // get scim id to retrieve user information
+            String scimId;
+            JSONObject responseObject = new JSONObject(scimResponse.getResponseMessage());
+            JSONArray resourceArray = responseObject.getJSONArray(SCIMConstants.ListedResourcesConstants.RESOURCES);
+            scimId = resourceArray.getJSONObject(0).getString(SCIMConstants.CommonSchemaConstants.ID);
 
+            SCIMResponse userDataResponse = userResourceEndpoint.get(scimId, format, userManager);
+            return new JAXRSResponseBuilder().buildResponse(userDataResponse);
+
+        } catch (JSONException e) {
+            logger.error("Error while processing the request", e);
+            CharonException exception = new CharonException("Error while processing the request", e);
+            exception.setCode(-1);
+            return handleCharonException(exception, encoder);
         } catch (CharonException e) {
             return handleCharonException(e, encoder);
         } catch (FormatNotSupportedException e) {
