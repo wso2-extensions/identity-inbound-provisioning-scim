@@ -186,6 +186,7 @@ public class SCIMUserManager implements UserManager {
 
     @Override
     public User getUser(String userId) throws CharonException {
+        String authorization = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (log.isDebugEnabled()) {
             log.debug("Retrieving user: " + userId);
         }
@@ -222,7 +223,7 @@ public class SCIMUserManager implements UserManager {
                     claimURIList.add(claim.getClaim().getClaimUri());
                 }
                 //we assume (since id is unique per user) only one user exists for a given id
-                scimUser = this.getSCIMUser(userNames[0], claimURIList);
+                scimUser = this.getSCIMUser(getAuthorizedDomainUser(userNames, authorization), claimURIList);
 
                 log.info("User: " + scimUser.getUserName() + " is retrieved through SCIM.");
             }
@@ -1626,6 +1627,18 @@ public class SCIMUserManager implements UserManager {
             return true;
         }
         return false;
+    }
+
+    private String getAuthorizedDomainUser(String[] userNames, String authorization) {
+        if (userNames != null && userNames.length == 1) {
+            return userNames[0];
+        }
+        for (String username : userNames) {
+            if (username.equals(authorization)) {
+                return username;
+            }
+        }
+        return userNames[0];
     }
 }
 
