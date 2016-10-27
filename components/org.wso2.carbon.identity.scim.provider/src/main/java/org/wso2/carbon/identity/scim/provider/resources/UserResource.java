@@ -24,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.jaxrs.designator.PATCH;
 import org.wso2.carbon.identity.scim.provider.impl.IdentitySCIMManager;
 import org.wso2.carbon.identity.scim.provider.util.JAXRSResponseBuilder;
@@ -345,7 +346,7 @@ public class UserResource extends AbstractResource {
             String scimId;
             JSONObject responseObject = new JSONObject(scimResponse.getResponseMessage());
             JSONArray resourceArray = responseObject.getJSONArray(SCIMConstants.ListedResourcesConstants.RESOURCES);
-            scimId = resourceArray.getJSONObject(0).getString(SCIMConstants.CommonSchemaConstants.ID);
+            scimId = getAuthorizedDomainUserSCIMId(resourceArray);
 
             SCIMResponse userDataResponse = userResourceEndpoint.get(scimId, format, userManager);
             return new JAXRSResponseBuilder().buildResponse(userDataResponse);
@@ -360,6 +361,19 @@ public class UserResource extends AbstractResource {
         } catch (FormatNotSupportedException e) {
             return handleFormatNotSupportedException(e);
         }
+    }
+
+    private String getAuthorizedDomainUserSCIMId(JSONArray resourceArray) throws JSONException {
+        if (resourceArray.length() == 1) {
+            return resourceArray.getJSONObject(0).getString(SCIMConstants.CommonSchemaConstants.ID);
+        }
+        String username = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
+        for (int i = 0; i < resourceArray.length(); i++) {
+            if (username.equals(resourceArray.getJSONObject(i).getString(SCIMConstants.UserSchemaConstants.USER_NAME))) {
+                return resourceArray.getJSONObject(i).getString(SCIMConstants.CommonSchemaConstants.ID);
+            }
+        }
+        return resourceArray.getJSONObject(0).getString(SCIMConstants.CommonSchemaConstants.ID);
     }
 
 }
