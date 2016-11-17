@@ -1248,6 +1248,8 @@ public class SCIMUserManager implements UserManager {
                                 "enabled for user store " + userStoreDomainName);
                     }
 
+                    //delete SCIM group attributes
+                    groupHandler.deleteGroupAttributes(groupName);
                     //delete group in carbon UM
                     carbonUM.deleteRole(groupName);
 
