@@ -1250,7 +1250,6 @@ public class SCIMUserManager implements UserManager {
 
                     //delete SCIM group attributes
                     groupHandler.deleteGroupAttributes(groupName);
-
                     //delete group in carbon UM
                     carbonUM.deleteRole(groupName);
 
