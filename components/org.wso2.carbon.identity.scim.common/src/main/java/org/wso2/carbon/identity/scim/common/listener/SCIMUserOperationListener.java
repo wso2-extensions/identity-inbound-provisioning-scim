@@ -348,7 +348,6 @@ public class SCIMUserOperationListener extends AbstractIdentityUserOperationEven
         }
 
         try {
-
             SCIMGroupHandler scimGroupHandler = new SCIMGroupHandler(userStoreManager.getTenantId());
 
             String domainName = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
@@ -370,11 +369,9 @@ public class SCIMUserOperationListener extends AbstractIdentityUserOperationEven
             }
 
             return true;
-
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             throw new UserStoreException(e);
         }
-    }
     }
 
     @Override
