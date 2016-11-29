@@ -198,10 +198,10 @@ public class UserResource extends AbstractResource {
             // create charon-SCIM user endpoint and hand-over the request.
             UserResourceEndpoint userResourceEndpoint = new UserResourceEndpoint();
             SCIMResponse scimResponse = null;
-            if (filter != null) {
-                scimResponse = userResourceEndpoint.listByFilter(filter, userManager, format);
-            } else if (searchAttribute == null && filter == null && startIndex == null
-                    && count == null && sortBy == null) {
+            if (filter != null || searchAttribute != null) {
+                scimResponse = userResourceEndpoint.listByFilterAndAttribute(filter, searchAttribute, userManager,
+                        format);
+            } else if (startIndex == null && count == null && sortBy == null) {
                 scimResponse = userResourceEndpoint.list(userManager, format);
             } else {
                 // All other query parameters are not supported hence send a error message.
@@ -340,7 +340,7 @@ public class UserResource extends AbstractResource {
             // create charon-SCIM user endpoint and hand-over the request.
             UserResourceEndpoint userResourceEndpoint = new UserResourceEndpoint();
             SCIMResponse scimResponse = null;
-            scimResponse = userResourceEndpoint.listByFilter(filter, userManager, format);
+            scimResponse = userResourceEndpoint.listByFilterAndAttribute(filter, null, userManager, format);
 
             // get scim id to retrieve user information
             String scimId;
