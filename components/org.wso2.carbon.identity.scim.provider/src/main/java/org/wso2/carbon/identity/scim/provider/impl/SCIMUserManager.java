@@ -1284,12 +1284,17 @@ public class SCIMUserManager implements UserManager {
                     if(!isInternalOrApplicationGroup(userStoreDomainName) && StringUtils.isNotBlank(userStoreDomainName)
                             && !isSCIMEnabled
                             (userStoreDomainName)){
-                        throw new CharonException("Cannot add user through scim to user store " + ". SCIM is not " +
+                        throw new CharonException("Cannot delete group through scim" + ". SCIM is not " +
                                 "enabled for user store " + userStoreDomainName);
                     }
 
                     //delete group in carbon UM
                     carbonUM.deleteRole(groupName);
+
+                    // Since user operation listeners are not fired with operation on Internal roles handle  it in SCIMUserManager
+                    if (isInternalOrApplicationGroup(userStoreDomainName)) {
+                        groupHandler.deleteGroupAttributes(groupName);
+                    }
 
                     //we do not update Identity_SCIM DB here since it is updated in SCIMUserOperationListener's methods.
                     log.info("Group: " + groupName + " is deleted through SCIM.");
