@@ -238,22 +238,15 @@ public class SCIMUserManager implements UserManager {
     @Override
     public List<User> listUsers() throws CharonException {
 
-        ClaimMapping[] claims;
         List<User> users = new ArrayList<>();
         try {
             String[] userNames = carbonUM.getUserList(SCIMConstants.ID_URI, "*", null);
             if (userNames != null && userNames.length != 0) {
-                //get claims related to SCIM claim dialect
-                claims = carbonClaimManager.getAllClaimMappings(SCIMCommonConstants.SCIM_CLAIM_DIALECT);
-                List<String> claimURIList = new ArrayList<>();
-                for (ClaimMapping claim : claims) {
-                    claimURIList.add(claim.getClaim().getClaimUri());
-                }
                 for (String userName : userNames) {
                     if (userName.contains(UserCoreConstants.NAME_COMBINER)) {
                         userName = userName.split("\\" + UserCoreConstants.NAME_COMBINER)[0];
                     }
-                    User scimUser = this.getSCIMUserWithoutRoles(userName, Collections.EMPTY_LIST);
+                    User scimUser = this.getSCIMUserWithoutRoles(userName, new ArrayList<String>());
                     if (scimUser != null) {
                         Map<String, Attribute> attrMap = scimUser.getAttributeList();
                         if (attrMap != null && !attrMap.isEmpty()) {
@@ -314,7 +307,6 @@ public class SCIMUserManager implements UserManager {
                     attributeValue);
         }
         List<User> filteredUsers = new ArrayList<>();
-        ClaimMapping[] claims;
         User scimUser = null;
         try {
             String[] userNames = getFilteredUserList(attributeName, filterOperation, attributeValue);
@@ -326,19 +318,13 @@ public class SCIMUserManager implements UserManager {
                 }
                 return Collections.emptyList();
             } else {
-                //get claims related to SCIM claim dialect
-                claims = carbonClaimManager.getAllClaimMappings(SCIMCommonConstants.SCIM_CLAIM_DIALECT);
-                List<String> claimURIList = new ArrayList<>();
-                for (ClaimMapping claim : claims) {
-                    claimURIList.add(claim.getClaim().getClaimUri());
-                }
                 for (String userName : userNames) {
 
                     if (CarbonConstants.REGISTRY_ANONNYMOUS_USERNAME.equals(userName)) {
                         continue;
                     }
 
-                    scimUser = this.getSCIMUserWithoutRoles(userName, Collections.EMPTY_LIST);
+                    scimUser = this.getSCIMUserWithoutRoles(userName, new ArrayList<String>());
                     //if SCIM-ID is not present in the attributes, skip
                     if (scimUser != null && StringUtils.isBlank(scimUser.getId())) {
                         continue;
