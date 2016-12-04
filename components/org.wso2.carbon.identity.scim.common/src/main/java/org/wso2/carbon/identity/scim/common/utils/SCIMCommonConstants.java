@@ -27,9 +27,9 @@ public class SCIMCommonConstants {
     public static final String OLD_GROUP_NAME = "OldGroupName";
     /*This permission is required to see the 'my scim providers ui' to configure providers per account
     * and also to authorize provisioning requests.*/
-    public static final String PROVISIONING_ADMIN_PERMISSION = "/permission/admin/configure/security/usermgt/provisioning";
+    public static final String PROVISIONING_ADMIN_PERMISSION = "/permission/admin/manage/identity/usermgt/provisioning";
     /*This permission is required to see the tenant space providers*/
-    public static final String PROVISIONING_ADMIN_GLOBAL_CONFIG_PERMISSION = "/permission/admin/configure/security";
+    public static final String PROVISIONING_ADMIN_GLOBAL_CONFIG_PERMISSION = "/permission/admin/manage/identity";
     /*Users with this permission can provision their profile updates*/
     public static final String PROVISIONING_USER_PERMISSION = "/permission/admin/login";
     public static final String RESOURCE_TO_BE_AUTHORIZED = "ui.execute";
