@@ -1274,13 +1274,10 @@ public class SCIMUserManager implements UserManager {
                                 "enabled for user store " + userStoreDomainName);
                     }
 
-                    //delete SCIM group attributes
-                    groupHandler.deleteGroupAttributes(groupName);
-
                     //delete group in carbon UM
                     carbonUM.deleteRole(groupName);
 
-                    // Since user operation listeners are not fired with operation on Internal roles handle  it in SCIMUserManager
+                    // Since user operation listeners are not fired with operation on Internal roles, handle it in SCIMUserManager
                     if (isInternalOrApplicationGroup(userStoreDomainName)) {
                         groupHandler.deleteGroupAttributes(groupName);
                     }
