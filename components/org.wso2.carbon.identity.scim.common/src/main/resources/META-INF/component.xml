@@ -20,7 +20,7 @@
     <ManagementPermissions>
         <ManagementPermission>
             <DisplayName>Identity Provisioning</DisplayName>
-            <ResourceId>/permission/admin/manage/identity/usermgt/provisioning</ResourceId>
+            <ResourceId>/permission/admin/manage/identity/provisioning</ResourceId>
         </ManagementPermission>
     </ManagementPermissions>
 
