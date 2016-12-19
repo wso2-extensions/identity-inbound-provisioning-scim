@@ -33,7 +33,6 @@ import org.wso2.carbon.identity.application.common.util.IdentityApplicationManag
 import org.wso2.carbon.identity.application.mgt.ApplicationConstants;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.provisioning.IdentityProvisioningException;
 import org.wso2.carbon.identity.provisioning.OutboundProvisioningManager;
 import org.wso2.carbon.identity.provisioning.ProvisioningEntity;
@@ -44,7 +43,6 @@ import org.wso2.carbon.identity.scim.common.utils.AttributeMapper;
 import org.wso2.carbon.identity.scim.common.utils.IdentitySCIMException;
 import org.wso2.carbon.identity.scim.common.utils.SCIMCommonConstants;
 import org.wso2.carbon.identity.scim.common.utils.SCIMCommonUtils;
-import org.wso2.carbon.identity.scim.provider.util.SCIMProviderConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
@@ -1664,11 +1662,18 @@ public class SCIMUserManager implements UserManager {
     }
 
     private String getAuthorizedDomainUser(String[] userNames, String authorization) {
+
+        String userStoreDomainFromAuthorization = IdentityUtil.extractDomainFromName(authorization);
+
         if (userNames != null && userNames.length == 1) {
             return userNames[0];
         }
+
         for (String username : userNames) {
-            if (username.equals(authorization)) {
+
+            String userStoreDomainFromScimId = IdentityUtil.extractDomainFromName(username);
+
+            if (userStoreDomainFromAuthorization.equals(userStoreDomainFromScimId)) {
                 return username;
             }
         }
