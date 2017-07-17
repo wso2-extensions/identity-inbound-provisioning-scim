@@ -203,12 +203,12 @@ public class SCIMUserManager implements UserManager {
             String[] userNames = carbonUM.getUserList(SCIMConstants.ID_URI, userId,
                     UserCoreConstants.DEFAULT_PROFILE);
 
-            if (userNames == null || userNames.length == 0) {
+            if (userNames == null) {
                 if (log.isDebugEnabled()) {
                     log.debug("User with SCIM id: " + userId + " does not exist in the system.");
                 }
                 return null;
-            } else if (userNames != null && userNames.length == 0) {
+            } else if (userNames.length == 0) {
                 if (log.isDebugEnabled()) {
                     log.debug("User with SCIM id: " + userId + " does not exist in the system.");
                 }
@@ -954,7 +954,7 @@ public class SCIMUserManager implements UserManager {
                     //check for deleted members
                     if (CollectionUtils.isNotEmpty(oldMembers)) {
                         for (String oldMember : oldMembers) {
-                            if (newMembers != null && newMembers.contains(oldMember)) {
+                            if (newMembers.contains(oldMember)) {
                                 continue;
                             }
                             deletedMembers.add(oldMember);
@@ -1663,21 +1663,26 @@ public class SCIMUserManager implements UserManager {
 
     private String getAuthorizedDomainUser(String[] userNames, String authorization) {
 
+        if (userNames==null || userNames.length < 1 || authorization == null) {
+            return null;
+        }
+
         String userStoreDomainFromAuthorization = IdentityUtil.extractDomainFromName(authorization);
 
-        if (userNames != null && userNames.length == 1) {
+        if (userNames.length == 1) {
             return userNames[0];
-        }
+        }else {
+            for (String username : userNames) {
 
-        for (String username : userNames) {
+                String userStoreDomainFromScimId = IdentityUtil.extractDomainFromName(username);
 
-            String userStoreDomainFromScimId = IdentityUtil.extractDomainFromName(username);
-
-            if (userStoreDomainFromAuthorization.equals(userStoreDomainFromScimId)) {
-                return username;
+                if (userStoreDomainFromAuthorization.equals(userStoreDomainFromScimId)) {
+                    return username;
+                }
             }
         }
-        return userNames[0];
+
+        return null;
     }
 }
 
