@@ -38,6 +38,7 @@ import org.wso2.charon.core.exceptions.InternalServerException;
 import org.wso2.charon.core.exceptions.UnauthorizedException;
 import org.wso2.charon.core.schema.SCIMConstants;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -106,7 +107,7 @@ public class BasicAuthHandler implements SCIMAuthenticationHandler {
 
             // decode it and extract username and password
             byte[] decodedAuthHeader = Base64.decode(authzHeader.split(" ")[1]);
-            String authHeader = new String(decodedAuthHeader);
+            String authHeader = new String(decodedAuthHeader, StandardCharsets.UTF_8);
             String userName = authHeader.split(":")[0];
             String password = authHeader.split(":")[1];
             if (userName != null && password != null) {

@@ -136,7 +136,7 @@ public class SCIMUserOperationListener extends AbstractIdentityUserOperationEven
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             throw new UserStoreException("Error while reading isScimEnabled from userstore manager", e);
         }
-        claims = this.getSCIMAttributes(userName, claims);
+        this.getSCIMAttributes(userName, claims);
         return true;
     }
 
