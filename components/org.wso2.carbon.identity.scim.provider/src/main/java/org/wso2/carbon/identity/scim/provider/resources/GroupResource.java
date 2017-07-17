@@ -212,6 +212,9 @@ public class GroupResource extends AbstractResource {
                         .updateWithPATCH(id, resourceString, inputFormat, outputFormat, userManager);
             } else if (DELETE.class.getSimpleName().equals(httpVerb)) {
                 scimResponse = groupResourceEndpoint.delete(id, userManager, outputFormat);
+            }else {
+                //bad request
+                throw new BadRequestException(ResponseCodeConstants.DESC_BAD_REQUEST_GET);
             }
 
             return new JAXRSResponseBuilder().buildResponse(scimResponse);
