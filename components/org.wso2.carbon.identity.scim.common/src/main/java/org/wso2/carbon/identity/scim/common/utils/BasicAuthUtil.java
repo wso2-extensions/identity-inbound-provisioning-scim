@@ -20,13 +20,15 @@ package org.wso2.carbon.identity.scim.common.utils;
 
 import org.apache.axiom.om.util.Base64;
 
+import java.io.UnsupportedEncodingException;
+
 public class BasicAuthUtil {
 
     private BasicAuthUtil(){}
 
-    public static String getBase64EncodedBasicAuthHeader(String userName, String password) {
+    public static String getBase64EncodedBasicAuthHeader(String userName, String password) throws UnsupportedEncodingException{
         String concatenatedCredential = userName + ":" + password;
-        byte[] byteValue = concatenatedCredential.getBytes();
+        byte[] byteValue = concatenatedCredential.getBytes("UTF-8");
         String encodedAuthHeader = Base64.encode(byteValue);
         encodedAuthHeader = "Basic " + encodedAuthHeader;
         return encodedAuthHeader;

@@ -189,8 +189,8 @@ public class GroupResource extends AbstractResource {
                 } else if (filter != null) {
                     scimResponse = groupResourceEndpoint.listByFilter(filter, userManager, outputFormat);
                 } else if (startIndex != null && count != null) {
-                    scimResponse = groupResourceEndpoint.listWithPagination(Integer.valueOf(startIndex),
-                                                                            Integer.valueOf(count),
+                    scimResponse = groupResourceEndpoint.listWithPagination(Integer.parseInt(startIndex),
+                                                                            Integer.parseInt(count),
                                                                             userManager, outputFormat);
                 } else if (sortBy != null) {
                     scimResponse = groupResourceEndpoint.listBySort(sortBy, sortOrder, userManager, outputFormat);
@@ -212,6 +212,9 @@ public class GroupResource extends AbstractResource {
                         .updateWithPATCH(id, resourceString, inputFormat, outputFormat, userManager);
             } else if (DELETE.class.getSimpleName().equals(httpVerb)) {
                 scimResponse = groupResourceEndpoint.delete(id, userManager, outputFormat);
+            }else {
+                //bad request
+                throw new BadRequestException(ResponseCodeConstants.DESC_BAD_REQUEST_GET);
             }
 
             return new JAXRSResponseBuilder().buildResponse(scimResponse);
