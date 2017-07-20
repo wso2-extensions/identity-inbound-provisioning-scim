@@ -201,7 +201,7 @@ public class AttributeMapper {
                                     MapUtils.isNotEmpty(entryOfComplexAttribute.getAttributes())) {
                                 entryAttributes = entryOfComplexAttribute.getAttributes();
                             }
-                            if(entryAttributes != null){
+                            if (entryAttributes != null) {
                                 for (Attribute subEntry : entryAttributes.values()) {
                                     // if the attribute a simple attribute
                                     if (subEntry instanceof SimpleAttribute) {
