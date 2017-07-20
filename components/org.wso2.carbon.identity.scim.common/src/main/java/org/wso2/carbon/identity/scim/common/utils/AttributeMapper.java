@@ -141,7 +141,7 @@ public class AttributeMapper {
                         // if the attribute a simple attribute
                         if (entry instanceof SimpleAttribute) {
                             SimpleAttribute simpleAttribute = (SimpleAttribute) entry;
-                            if (simpleAttribute != null && simpleAttribute.getValue() != null) {
+                            if (simpleAttribute.getValue() != null) {
                                 claimsMap.put(entry.getAttributeURI(),
                                         AttributeUtil.getStringValueOfAttribute(simpleAttribute.getValue(),
                                                 simpleAttribute.getDataType()));
@@ -201,17 +201,20 @@ public class AttributeMapper {
                                     MapUtils.isNotEmpty(entryOfComplexAttribute.getAttributes())) {
                                 entryAttributes = entryOfComplexAttribute.getAttributes();
                             }
-                            for (Attribute subEntry : entryAttributes.values()) {
-                                // if the attribute a simple attribute
-                                if (subEntry instanceof SimpleAttribute) {
-                                    SimpleAttribute simpleAttribute = (SimpleAttribute) subEntry;
-                                    if (simpleAttribute != null && simpleAttribute.getValue() != null) {
-                                        claimsMap.put(subEntry.getAttributeURI(),
-                                                AttributeUtil.getStringValueOfAttribute(simpleAttribute.getValue(),
-                                                        simpleAttribute.getDataType()));
+                            if (entryAttributes != null) {
+                                for (Attribute subEntry : entryAttributes.values()) {
+                                    // if the attribute a simple attribute
+                                    if (subEntry instanceof SimpleAttribute) {
+                                        SimpleAttribute simpleAttribute = (SimpleAttribute) subEntry;
+                                        if (simpleAttribute.getValue() != null) {
+                                            claimsMap.put(subEntry.getAttributeURI(),
+                                                    AttributeUtil.getStringValueOfAttribute(simpleAttribute.getValue(),
+                                                            simpleAttribute.getDataType()));
+                                        }
                                     }
                                 }
                             }
+
                         }
                     }
                 }
