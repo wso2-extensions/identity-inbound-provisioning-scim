@@ -200,7 +200,7 @@ public class SCIMUserManager implements UserManager {
         User scimUser = null;
         try {
             ClaimMapping[] claims;
-            //get the user name of the user with this idAttributeMapper.java
+            //get the user name of the user with this id
             String[] userNames = carbonUM.getUserList(SCIMConstants.ID_URI, userId,
                     UserCoreConstants.DEFAULT_PROFILE);
 
