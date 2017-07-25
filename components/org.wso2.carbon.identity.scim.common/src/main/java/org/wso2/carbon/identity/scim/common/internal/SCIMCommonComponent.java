@@ -22,9 +22,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
+import org.wso2.carbon.identity.scim.common.listener.SCIMTenantMgtListener;
 import org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener;
 import org.wso2.carbon.identity.scim.common.utils.SCIMCommonUtils;
+import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
+import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.wso2.charon.core.config.SCIMConfig;
 import org.wso2.charon.core.config.SCIMConfigConstants;
@@ -41,6 +44,9 @@ import java.util.concurrent.Executors;
  * @scr.reference name="identityCoreInitializedEventService"
  * interface="org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent" cardinality="1..1"
  * policy="dynamic" bind="setIdentityCoreInitializedEventService" unbind="unsetIdentityCoreInitializedEventService"
+ * @scr.reference name="user.realmservice.default"
+ * interface="org.wso2.carbon.user.core.service.RealmService" cardinality="1..1"
+ * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
  */
 public class SCIMCommonComponent {
     private static Log logger = LogFactory.getLog(SCIMCommonComponent.class);
@@ -68,7 +74,13 @@ public class SCIMCommonComponent {
             ctx.getBundleContext().registerService(UserOperationEventListener.class.getName(),
                                                    scimUserOperationListener, null);
 
+            //register scimTenantMgtListener implementation
+            SCIMTenantMgtListener scimTenantMgtListener = new SCIMTenantMgtListener();
+            ctx.getBundleContext().registerService(TenantMgtListener.class.getName(),
+                    scimTenantMgtListener, null);
+
             SCIMCommonUtils.init();
+            SCIMCommonUtils.setAdminSCIMAttributes();
 
             if (logger.isDebugEnabled()) {
                 logger.debug("SCIM Common component activated successfully.");
@@ -88,4 +100,27 @@ public class SCIMCommonComponent {
          is started */
     }
 
+    /**
+     * Set realm service implementation
+     *
+     * @param realmService RealmService
+     */
+    protected void setRealmService(RealmService realmService) {
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("realmService set in SCIMCommonComponent bundle");
+        }
+        SCIMCommonComponentHolder.setRealmService(realmService);
+    }
+
+    /**
+     * Unset realm service implementation
+     */
+    protected void unsetRealmService(RealmService realmService) {
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("realmService unset in SCIMCommonComponent bundle");
+        }
+        SCIMCommonComponentHolder.setRealmService(null);
+    }
 }
