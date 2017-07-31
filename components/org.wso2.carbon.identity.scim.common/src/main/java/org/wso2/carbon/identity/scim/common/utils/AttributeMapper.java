@@ -214,7 +214,6 @@ public class AttributeMapper {
                                     }
                                 }
                             }
-
                         }
                     }
                 }
