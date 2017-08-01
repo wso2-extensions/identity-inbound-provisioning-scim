@@ -54,7 +54,7 @@ public class SCIMCommonComponent {
 
             SCIMConfigProcessor scimConfigProcessor = new SCIMConfigProcessor();
             SCIMConfig scimConfig = scimConfigProcessor.buildConfigFromFile(filePath);
-            boolean isDumbMode  = scimConfig.isDumbMode();
+
             // reading user schema extension
             if (Boolean.parseBoolean(scimConfig.getAdditionalPropertyValue("user-schema-extension-enabled"))) {
                 String schemaFilePath =
