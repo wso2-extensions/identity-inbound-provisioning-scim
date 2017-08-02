@@ -19,10 +19,23 @@
 package org.wso2.carbon.identity.scim.common.utils;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.scim.common.internal.SCIMCommonComponentHolder;
+import org.wso2.carbon.stratos.common.util.ClaimsMgtUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.charon.core.schema.SCIMConstants;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * This class is to be used as a Util class for SCIM common things.
@@ -30,8 +43,13 @@ import org.wso2.carbon.user.core.UserCoreConstants;
  */
 public class SCIMCommonUtils {
 
+    private static final String SUPER_TENANT_DOMAIN = "carbon.super";
+
     private static String scimGroupLocation;
     private static String scimUserLocation;
+
+    private static Log log = LogFactory.getLog(SCIMCommonUtils.class);
+
     /**
      * Since we need perform provisioning through UserOperationEventListeenr implementation -
      *
@@ -161,4 +179,48 @@ public class SCIMCommonUtils {
         return groupName;
     }
 
+    /**
+     * Set SCIM attributes for super tenant admin users.
+     */
+    public static void setAdminSCIMAttributes() {
+
+        try {
+            int superTenantId = IdentityTenantUtil.getTenantId(SUPER_TENANT_DOMAIN);
+            UserStoreManager userStoreManager =
+                    (UserStoreManager) SCIMCommonComponentHolder.getRealmService().
+                            getTenantUserRealm(superTenantId).getUserStoreManager();
+
+            if (userStoreManager.isSCIMEnabled()) {
+                //get admin user name from claim utils
+                String adminUsername = ClaimsMgtUtil.getAdminUserNameFromTenantId(IdentityTenantUtil.getRealmService(),
+                        superTenantId);
+                Map<String, String> claimsList = new HashMap<>();
+
+                //get scim id attribute. generate new metadata if null
+                String scim_id = userStoreManager.getUserClaimValue(adminUsername, SCIMConstants.ID_URI,
+                        UserCoreConstants.DEFAULT_PROFILE);
+                if (StringUtils.isEmpty(scim_id)) {
+                    String id = UUID.randomUUID().toString();
+                    claimsList.put(SCIMConstants.ID_URI, id);
+                    claimsList.put(SCIMConstants.USER_NAME_URI, adminUsername);
+
+                    Date date = new Date();
+                    String createdDate = formatDateTime(date);
+                    claimsList.put(SCIMConstants.META_CREATED_URI, createdDate);
+                    claimsList.put(SCIMConstants.META_LAST_MODIFIED_URI, createdDate);
+                    userStoreManager.setUserClaimValues(adminUsername, claimsList, UserCoreConstants.DEFAULT_PROFILE);
+                }
+            }
+        } catch (Exception e) {
+            String msg = "Error in adding SCIM metadata to the admin in tenant domain: " + SUPER_TENANT_DOMAIN;
+            log.error(msg, e);
+        }
+    }
+
+    public static String formatDateTime(Date date) {
+
+        SimpleDateFormat sdf = new SimpleDateFormat(SCIMConstants.dateTimeFormat);
+        String formattedDate = sdf.format(date);
+        return formattedDate;
+    }
 }
