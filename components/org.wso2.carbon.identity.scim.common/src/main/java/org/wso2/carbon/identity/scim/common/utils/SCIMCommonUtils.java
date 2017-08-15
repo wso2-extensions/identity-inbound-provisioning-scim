@@ -25,10 +25,14 @@ import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.base.ServerConfiguration;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.scim.common.group.SCIMGroupHandler;
 import org.wso2.carbon.identity.scim.common.internal.SCIMCommonComponentHolder;
 import org.wso2.carbon.stratos.common.util.ClaimsMgtUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
+import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.charon.core.schema.SCIMConstants;
 
 import java.text.SimpleDateFormat;
@@ -155,7 +159,7 @@ public class SCIMCommonUtils {
         if (groupName.indexOf(CarbonConstants.DOMAIN_SEPARATOR) > 0) {
             return groupName;
         } else {
-            return UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME
+            return IdentityUtil.getPrimaryDomainName()
                     + CarbonConstants.DOMAIN_SEPARATOR + groupName;
         }
     }
@@ -209,11 +213,51 @@ public class SCIMCommonUtils {
                     claimsList.put(SCIMConstants.META_CREATED_URI, createdDate);
                     claimsList.put(SCIMConstants.META_LAST_MODIFIED_URI, createdDate);
                     userStoreManager.setUserClaimValues(adminUsername, claimsList, UserCoreConstants.DEFAULT_PROFILE);
+                    
+                    addAdminGroup(userStoreManager);
                 }
             }
         } catch (Exception e) {
             String msg = "Error in adding SCIM metadata to the admin in tenant domain: " + SUPER_TENANT_DOMAIN;
             log.error(msg, e);
+        }
+    }
+
+    public static void addAdminGroup(UserStoreManager userStoreManager) throws UserStoreException {
+        try {
+            SCIMGroupHandler scimGroupHandler = new SCIMGroupHandler(userStoreManager.getTenantId());
+
+            String domainName = UserCoreUtil.getDomainName(userStoreManager.getRealmConfiguration());
+            if (StringUtils.isEmpty(domainName)) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Domain name is null and setting default domain as " +
+                            IdentityUtil.getPrimaryDomainName());
+                }
+                domainName = IdentityUtil.getPrimaryDomainName();
+            }
+            String roleNameWithDomain = UserCoreUtil
+                    .addDomainToName(userStoreManager.getRealmConfiguration().getAdminRoleName(), domainName);
+            // UserCore Util functionality does not append primary
+            roleNameWithDomain = SCIMCommonUtils.getGroupNameWithDomain(roleNameWithDomain);
+
+            //query role name from identity table
+            try {
+                if (!scimGroupHandler.isGroupExisting(roleNameWithDomain)) {
+                    //if no attributes - i.e: group added via mgt console, not via SCIM endpoint
+                    //add META
+                    if (log.isDebugEnabled()) {
+                        log.debug("Group does not exist, setting scim attribute group value: " + roleNameWithDomain);
+                    }
+                    scimGroupHandler.addMandatoryAttributes(roleNameWithDomain);
+                }
+            } catch (IdentitySCIMException e) {
+                throw new UserStoreException(
+                        "Error retrieving group information from SCIM Tables for tenant ID: " + userStoreManager
+                                .getTenantId(), e);
+            }
+
+        } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            throw new UserStoreException(e);
         }
     }
 

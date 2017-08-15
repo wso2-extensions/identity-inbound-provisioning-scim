@@ -20,12 +20,11 @@ package org.wso2.carbon.identity.scim.common.listener;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.AbstractIdentityTenantMgtListener;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.scim.common.internal.SCIMCommonComponentHolder;
 import org.wso2.carbon.identity.scim.common.utils.SCIMCommonUtils;
-import org.wso2.carbon.stratos.common.beans.TenantInfoBean;
 import org.wso2.carbon.stratos.common.exception.StratosException;
-import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.stratos.common.util.ClaimsMgtUtil;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -41,60 +40,14 @@ import java.util.UUID;
  * This is an implementation of TenantMgtListener. This is used
  * to generate SCIM attributes for tenant admin users.
  */
-public class SCIMTenantMgtListener implements TenantMgtListener {
+public class SCIMTenantMgtListener extends AbstractIdentityTenantMgtListener {
 
     private static Log log = LogFactory.getLog(SCIMTenantMgtListener.class);
-
-    @Override
-    public void onTenantCreate(TenantInfoBean tenantInfoBean) throws StratosException {
-
-    }
-
-    @Override
-    public void onTenantUpdate(TenantInfoBean tenantInfoBean) throws StratosException {
-
-    }
-
-    @Override
-    public void onTenantDelete(int tenantId) {
-
-    }
-
-    @Override
-    public void onTenantRename(int tenantId, String oldDomainName, String newDomainName) throws StratosException {
-
-    }
 
     @Override
     public void onTenantInitialActivation(int tenantId) throws StratosException {
 
         setTenantAdminSCIMAttributes(tenantId);
-    }
-
-    @Override
-    public void onTenantActivation(int tenantId) throws StratosException {
-
-    }
-
-    @Override
-    public void onTenantDeactivation(int tenantId) throws StratosException {
-
-    }
-
-    @Override
-    public void onSubscriptionPlanChange(int tenantId, String oldPlan, String newPlan) throws StratosException {
-
-    }
-
-    @Override
-    public int getListenerOrder() {
-
-        return 0;
-    }
-
-    @Override
-    public void onPreDelete(int tenantId) throws StratosException {
-
     }
 
     /**
@@ -123,6 +76,8 @@ public class SCIMTenantMgtListener implements TenantMgtListener {
 
                 userStoreManager.setUserClaimValues(adminUsername, claimsMap,
                         UserCoreConstants.DEFAULT_PROFILE);
+
+                SCIMCommonUtils.addAdminGroup(userStoreManager);
             }
         } catch (Exception e) {
             String msg = "Error while adding SCIM metadata to the tenant admin in tenant ID : " + tenantId;

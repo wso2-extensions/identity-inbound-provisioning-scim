@@ -20,6 +20,7 @@ package org.wso2.carbon.identity.scim.common.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.scim.common.listener.SCIMTenantMgtListener;
@@ -52,6 +53,8 @@ public class SCIMCommonComponent {
     private static Log logger = LogFactory.getLog(SCIMCommonComponent.class);
 
     ExecutorService executorService = Executors.newFixedThreadPool(1);
+    private ServiceRegistration<TenantMgtListener> tenantMgtListenerServiceReg;
+    private ServiceRegistration<UserOperationEventListener> userOperationEventListenerServiceReg;
 
     protected void activate(ComponentContext ctx) {
         try {
@@ -71,12 +74,12 @@ public class SCIMCommonComponent {
 
             //register UserOperationEventListener implementation
             SCIMUserOperationListener scimUserOperationListener = new SCIMUserOperationListener();
-            ctx.getBundleContext().registerService(UserOperationEventListener.class.getName(),
-                                                   scimUserOperationListener, null);
+            userOperationEventListenerServiceReg = ctx.getBundleContext()
+                    .registerService(UserOperationEventListener.class, scimUserOperationListener, null);
 
             //register scimTenantMgtListener implementation
             SCIMTenantMgtListener scimTenantMgtListener = new SCIMTenantMgtListener();
-            ctx.getBundleContext().registerService(TenantMgtListener.class.getName(),
+            tenantMgtListenerServiceReg = ctx.getBundleContext().registerService(TenantMgtListener.class,
                     scimTenantMgtListener, null);
 
             SCIMCommonUtils.init();
@@ -122,5 +125,15 @@ public class SCIMCommonComponent {
             logger.debug("realmService unset in SCIMCommonComponent bundle");
         }
         SCIMCommonComponentHolder.setRealmService(null);
+    }
+
+    protected void deactivate(ComponentContext context) {
+        if (tenantMgtListenerServiceReg != null) {
+            tenantMgtListenerServiceReg.unregister();
+        }
+
+        if (userOperationEventListenerServiceReg != null) {
+            userOperationEventListenerServiceReg.unregister();
+        }
     }
 }
