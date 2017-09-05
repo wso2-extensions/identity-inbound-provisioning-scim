@@ -218,8 +218,9 @@ public class SCIMUserManager implements UserManager {
                 }
                 //we assume (since id is unique per user) only one user exists for a given id
                 scimUser = this.getSCIMUser(getAuthorizedDomainUser(userNames, authorization), claimURIList);
-
-                log.info("User: " + scimUser.getUserName() + " is retrieved through SCIM.");
+                if (log.isDebugEnabled()) {
+                    log.debug("User: " + scimUser.getUserName() + " is retrieved through SCIM.");
+                }
             }
 
         } catch (UserStoreException e) {
@@ -443,7 +444,7 @@ public class SCIMUserManager implements UserManager {
                 if (user.getPassword() != null) {
                     carbonUM.updateCredentialByAdmin(user.getUserName(), user.getPassword());
                 }
-                log.info("User: " + user.getUserName() + " updated updated through SCIM.");
+                log.info("User: " + user.getUserName() + " updated through SCIM.");
             } catch (UserStoreException e) {
                 throw new CharonException("Error while updating attributes of user: " + user.getUserName(), e);
             }
@@ -517,7 +518,7 @@ public class SCIMUserManager implements UserManager {
                 if (StringUtils.isNotEmpty(newUser.getPassword())) {
                     carbonUM.updateCredentialByAdmin(newUser.getUserName(), newUser.getPassword());
                 }
-                log.info("User: " + newUser.getUserName() + " updated updated through SCIM.");
+                log.info("User: " + newUser.getUserName() + " updated through SCIM.");
             } catch (org.wso2.carbon.user.core.UserStoreException e) {
                 throw new CharonException("Error while updating attributes of user: " + newUser.getUserName(), e);
             }
