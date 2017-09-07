@@ -108,8 +108,13 @@ public class BasicAuthHandler implements SCIMAuthenticationHandler {
             // decode it and extract username and password
             byte[] decodedAuthHeader = Base64.decode(authzHeader.split(" ")[1]);
             String authHeader = new String(decodedAuthHeader, StandardCharsets.UTF_8);
-            String userName = authHeader.split(":")[0];
-            String password = authHeader.split(":")[1];
+            String[] credentials = authHeader.split(":");
+            String userName = null;
+            String password = null;
+            if (credentials.length == 2) {
+                userName = credentials[0];
+                password = credentials[1];
+            }
             if (userName != null && password != null) {
                 String tenantDomain = MultitenantUtils.getTenantDomain(userName);
                 String tenantLessUserName = MultitenantUtils.getTenantAwareUsername(userName);
