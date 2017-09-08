@@ -169,8 +169,44 @@ public class SCIMUserManager implements UserManager {
                 if (claimsMap.containsKey(SCIMConstants.USER_NAME_URI)) {
                     claimsMap.remove(SCIMConstants.USER_NAME_URI);
                 }
-                carbonUM.addUser(user.getUserName(), user.getPassword(), null, claimsMap, null);
-                log.info("User: " + user.getUserName() + " is created through SCIM.");
+
+                // location uri will not add to the userstore.
+                if (claimsMap.containsKey(SCIMConstants.META_LOCATION_URI)) {
+                    claimsMap.remove(SCIMConstants.META_LOCATION_URI);
+                }
+
+                Map<String, String> clonedClaimsMap = new HashMap(claimsMap);
+                carbonUM.addUser(user.getUserName(), user.getPassword(), null, clonedClaimsMap, null);
+
+                // The username will modify in the returned map.
+                String modifiedUserName = null;
+                if (clonedClaimsMap.containsKey(SCIMConstants.USER_NAME_URI)) {
+                    modifiedUserName = clonedClaimsMap.get(SCIMConstants.USER_NAME_URI);
+                    clonedClaimsMap.remove(SCIMConstants.USER_NAME_URI);
+                }
+
+                // Check if the user claims map passed has been modified.
+                if (!claimsMap.equals(clonedClaimsMap)) {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Claims of user : " + user.getUserName() + " is updated. Populate updated claims.");
+                    }
+
+                    user.setUserName(modifiedUserName);
+
+                    clonedClaimsMap.put(SCIMConstants.USER_NAME_URI, user.getUserName());
+                    String userId = clonedClaimsMap.get(SCIMConstants.ID_URI);
+                    clonedClaimsMap.put(SCIMConstants.META_LOCATION_URI, SCIMCommonUtils.getSCIMUserURL(userId));
+
+                    //construct the SCIM Object from the attributes
+                    try {
+                        User newUser = (User) AttributeMapper
+                                .constructSCIMObjectFromAttributes(clonedClaimsMap, SCIMConstants.USER_INT);
+                        return newUser;
+                    } catch (NotFoundException e) {
+                        log.warn("Failed to populate modified claims for user : " + user.getUserName() + " created.",
+                                e);
+                    }
+                }
             }
         } catch (UserStoreException e) {
             String errMsg = "Error in adding the user: " + user.getUserName() + " to the user store. ";
@@ -179,6 +215,9 @@ public class SCIMUserManager implements UserManager {
         } finally {
             PrivilegedCarbonContext.endTenantFlow();
         }
+
+        log.info("User: " + user.getUserName() + " is created through SCIM.");
+
         return user;
 
     }
@@ -217,7 +256,7 @@ public class SCIMUserManager implements UserManager {
                     claimURIList.add(claim.getClaim().getClaimUri());
                 }
                 //we assume (since id is unique per user) only one user exists for a given id
-                scimUser = this.getSCIMUser(getAuthorizedDomainUser(userNames, authorization), claimURIList);
+                scimUser = this.getSCIMUser(getAuthorizedDomainUser(userNames, authorization), claimURIList, userId);
                 if (log.isDebugEnabled()) {
                     log.debug("User: " + scimUser.getUserName() + " is retrieved through SCIM.");
                 }
@@ -1295,7 +1334,6 @@ public class SCIMUserManager implements UserManager {
     private User getSCIMUserWithoutRoles(String userName, List<String> claimURIList) throws CharonException {
 
         claimURIList.add(SCIMConstants.ID_URI);
-        claimURIList.add(SCIMConstants.META_LOCATION_URI);
         claimURIList.add(SCIMConstants.META_CREATED_URI);
         claimURIList.add(SCIMConstants.META_LAST_MODIFIED_URI);
         User scimUser = null;
@@ -1309,6 +1347,9 @@ public class SCIMUserManager implements UserManager {
                 attributes.remove(SCIMConstants.ADDRESSES_URI);
             }
 
+            //set location uri because location uir is not getting from the userstore
+            attributes.put(SCIMConstants.META_LOCATION_URI, SCIMCommonUtils.getSCIMUserURL(userName));
+
             // Add username with domain name
             attributes.put(SCIMConstants.USER_NAME_URI, userName);
             scimUser = (User) AttributeMapper.constructSCIMObjectFromAttributes(
@@ -1320,7 +1361,7 @@ public class SCIMUserManager implements UserManager {
         return scimUser;
     }
 
-    private User getSCIMUser(String userName, List<String> claimURIList) throws CharonException {
+    private User getSCIMUser(String userName, List<String> claimURIList, String userId) throws CharonException {
         User scimUser = null;
 
         String userStoreDomainName = IdentityUtil.extractDomainFromName(userName);
@@ -1340,6 +1381,9 @@ public class SCIMUserManager implements UserManager {
 
             // Add username with domain name
             attributes.put(SCIMConstants.USER_NAME_URI, userName);
+
+            //set location uri
+            attributes.put(SCIMConstants.META_LOCATION_URI, SCIMCommonUtils.getSCIMUserURL(userId));
 
             //get groups of user and add it as groups attribute
             String[] roles = carbonUM.getRoleListOfUser(userName);

@@ -462,9 +462,14 @@ public class SCIMUserOperationListener extends AbstractIdentityUserOperationEven
 
         Date date = new Date();
         String createdDate = AttributeUtil.formatDateTime(date);
-        attributes.put(SCIMConstants.META_CREATED_URI, createdDate);
 
-        attributes.put(SCIMConstants.META_LAST_MODIFIED_URI, createdDate);
+        if (!attributes.containsKey(SCIMConstants.META_CREATED_URI)) {
+            attributes.put(SCIMConstants.META_CREATED_URI, createdDate);
+        }
+
+        if (!attributes.containsKey(SCIMConstants.META_LAST_MODIFIED_URI)) {
+            attributes.put(SCIMConstants.META_LAST_MODIFIED_URI, createdDate);
+        }
 
         attributes.put(SCIMConstants.USER_NAME_URI, userName);
 
