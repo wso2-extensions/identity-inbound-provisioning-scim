@@ -203,7 +203,7 @@ public class SCIMUserManager implements UserManager {
                                 .constructSCIMObjectFromAttributes(clonedClaimsMap, SCIMConstants.USER_INT);
                         return newUser;
                     } catch (NotFoundException e) {
-                        log.warn("Failed to populate modified claims for user : " + user.getUserName() + " created.",
+                        throw new CharonException("Failed to populate modified claims for user : " + user.getUserName() + " created.",
                                 e);
                     }
                 }
@@ -216,7 +216,9 @@ public class SCIMUserManager implements UserManager {
             PrivilegedCarbonContext.endTenantFlow();
         }
 
-        log.info("User: " + user.getUserName() + " is created through SCIM.");
+        if (log.isDebugEnabled()) {
+            log.debug("User: " + user.getUserName() + " is created through SCIM.");
+        }
 
         return user;
 
@@ -365,8 +367,10 @@ public class SCIMUserManager implements UserManager {
                     }
                     filteredUsers.add(scimUser);
                 }
-                log.info("Users filtered through SCIM for the filter: " + attributeName + filterOperation +
-                        attributeValue);
+                if (log.isDebugEnabled()) {
+                    log.debug("Users filtered through SCIM for the filter: " + attributeName + filterOperation +
+                            attributeValue);
+                }
             }
 
         } catch (UserStoreException e) {
@@ -483,7 +487,9 @@ public class SCIMUserManager implements UserManager {
                 if (user.getPassword() != null) {
                     carbonUM.updateCredentialByAdmin(user.getUserName(), user.getPassword());
                 }
-                log.info("User: " + user.getUserName() + " updated through SCIM.");
+                if (log.isDebugEnabled()) {
+                    log.debug("User: " + user.getUserName() + " updated through SCIM.");
+                }
             } catch (UserStoreException e) {
                 throw new CharonException("Error while updating attributes of user: " + user.getUserName(), e);
             }
@@ -557,7 +563,9 @@ public class SCIMUserManager implements UserManager {
                 if (StringUtils.isNotEmpty(newUser.getPassword())) {
                     carbonUM.updateCredentialByAdmin(newUser.getUserName(), newUser.getPassword());
                 }
-                log.info("User: " + newUser.getUserName() + " updated through SCIM.");
+                if (log.isDebugEnabled()) {
+                    log.debug("User: " + newUser.getUserName() + " updated through SCIM.");
+                }
             } catch (org.wso2.carbon.user.core.UserStoreException e) {
                 throw new CharonException("Error while updating attributes of user: " + newUser.getUserName(), e);
             }
@@ -613,7 +621,9 @@ public class SCIMUserManager implements UserManager {
                     //we assume (since id is unique per user) only one user exists for a given id
                     userName = userNames[0];
                     carbonUM.deleteUser(userName);
-                    log.info("User: " + userName + " is deleted through SCIM.");
+                    if (log.isDebugEnabled()) {
+                        log.debug("User: " + userName + " is deleted through SCIM.");
+                    }
                 }
 
             } catch (org.wso2.carbon.user.core.UserStoreException e) {
@@ -722,13 +732,17 @@ public class SCIMUserManager implements UserManager {
                     scimGroupHandler.createSCIMAttributes(group);
                     carbonUM.addRole(group.getDisplayName(),
                             members.toArray(new String[members.size()]), null, false);
-                    log.info("Group: " + group.getDisplayName() + " is created through SCIM.");
+                    if (log.isDebugEnabled()) {
+                        log.debug("Group: " + group.getDisplayName() + " is created through SCIM.");
+                    }
                 } else {
                     //add other scim attributes in the identity DB since user store doesn't support some attributes.
                     SCIMGroupHandler scimGroupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
                     scimGroupHandler.createSCIMAttributes(group);
                     carbonUM.addRole(group.getDisplayName(), null, null, false);
-                    log.info("Group: " + group.getDisplayName() + " is created through SCIM.");
+                    if (log.isDebugEnabled()) {
+                        log.debug("Group: " + group.getDisplayName() + " is created through SCIM.");
+                    }
                 }
             } catch (UserStoreException e) {
                 try {
@@ -1015,7 +1029,9 @@ public class SCIMUserManager implements UserManager {
                     }
                 }
                 if (updated) {
-                    log.info("Group: " + newGroup.getDisplayName() + " is updated through SCIM.");
+                    if (log.isDebugEnabled()) {
+                        log.debug("Group: " + newGroup.getDisplayName() + " is updated through SCIM.");
+                    }
                 } else {
                     log.warn("There is no updated field in the group: " + oldGroup.getDisplayName() +
                             ". Therefore ignoring the provisioning.");
@@ -1249,7 +1265,9 @@ public class SCIMUserManager implements UserManager {
                 }
 
                 if (updated) {
-                    log.info("Group: " + newGroup.getDisplayName() + " is updated through SCIM.");
+                    if (log.isDebugEnabled()) {
+                        log.debug("Group: " + newGroup.getDisplayName() + " is updated through SCIM.");
+                    }
                 } else {
                     log.warn("There is no updated field in the group: " + oldGroup.getDisplayName() +
                             ". Therefore ignoring the provisioning.");
@@ -1317,7 +1335,9 @@ public class SCIMUserManager implements UserManager {
                     }
 
                     //we do not update Identity_SCIM DB here since it is updated in SCIMUserOperationListener's methods.
-                    log.info("Group: " + groupName + " is deleted through SCIM.");
+                    if (log.isDebugEnabled()) {
+                        log.debug("Group: " + groupName + " is deleted through SCIM.");
+                    }
 
                 } else {
                     if (log.isDebugEnabled()) {
