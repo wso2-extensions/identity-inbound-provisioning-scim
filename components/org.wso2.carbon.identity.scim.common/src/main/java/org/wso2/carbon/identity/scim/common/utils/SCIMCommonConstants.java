@@ -39,6 +39,13 @@ public class SCIMCommonConstants {
 
     public static final String SCIM_CLAIM_DIALECT = "urn:scim:schemas:core:1.0";
 
+    public static final String ASK_PASSWORD_URI = "urn:scim:schemas:extension:wso2:1.0:wso2Extension.askPassword";
+    public static final String VERIFY_EMAIL_URI = "urn:scim:schemas:extension:wso2:1.0:wso2Extension.verifyEmail";
+
+    // Identity recovery claims
+    public static final String ASK_PASSWORD_CLAIM = "http://wso2.org/claims/identity/askPassword";
+    public static final String VERIFY_EMAIL_CLIAM = "http://wso2.org/claims/identity/verifyEmail";
+
     private  SCIMCommonConstants(){}
 
 }

@@ -29,5 +29,5 @@
     </scim-consumers>
     <Property name="dumb-mode">false</Property>
     <Property name="provisioning-handlers">org.wso2.carbon.identity.scim.common.impl.DefaultSCIMProvisioningHandler</Property>
-    <Property name="user-schema-extension-enabled">false</Property>
+    <Property name="user-schema-extension-enabled">true</Property>
 </provisioning-config>
