@@ -236,6 +236,11 @@ public class SCIMUserManager implements UserManager {
 
     @Override
     public User getUser(String userId) throws CharonException {
+
+        boolean isMe = SCIMCommonUtils.getThreadLocalToIdentifyMeEndpointCall();
+        if (log.isDebugEnabled() && isMe) {
+            log.debug("getUser() using scimID is called by /Me Endpoint for scimID: " + userId);
+        }
         String authorization = PrivilegedCarbonContext.getThreadLocalCarbonContext().getUsername();
         if (log.isDebugEnabled()) {
             log.debug("Retrieving user: " + userId);
@@ -252,8 +257,21 @@ public class SCIMUserManager implements UserManager {
         try {
             ClaimMapping[] claims;
             //get the user name of the user with this id
-            String[] userNames = carbonUM.getUserList(SCIMConstants.ID_URI, userId,
-                    UserCoreConstants.DEFAULT_PROFILE);
+            String[] userNames = null;
+
+            if (isMe) {
+                // This is done to prevent user search with the scim id which is a performance hit for /Me calls.
+                // We can use the username from threadLocal since this is the /Me call.
+                if (log.isDebugEnabled()) {
+                    log.debug("Username: " + authorization + " is taken from the ThreadLocal.");
+                }
+                userNames = new String[]{authorization};
+            } else {
+                userNames = carbonUM.getUserList(SCIMConstants.ID_URI, userId, UserCoreConstants.DEFAULT_PROFILE);
+                if (log.isDebugEnabled()) {
+                    log.debug("Username: " + Arrays.toString(userNames) + " is retrieved for scimID: " + userId);
+                }
+            }
 
             if (ArrayUtils.isEmpty(userNames)) {
                 if (log.isDebugEnabled()) {
