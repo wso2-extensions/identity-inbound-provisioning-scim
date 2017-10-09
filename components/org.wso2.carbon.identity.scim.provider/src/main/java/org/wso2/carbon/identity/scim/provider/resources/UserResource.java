@@ -26,6 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.jaxrs.designator.PATCH;
+import org.wso2.carbon.identity.scim.common.utils.SCIMCommonUtils;
 import org.wso2.carbon.identity.scim.provider.impl.IdentitySCIMManager;
 import org.wso2.carbon.identity.scim.provider.util.JAXRSResponseBuilder;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -324,6 +325,10 @@ public class UserResource extends AbstractResource {
             @HeaderParam(SCIMConstants.AUTHORIZATION_HEADER) String authorization) {
         Encoder encoder = null;
         try {
+            SCIMCommonUtils.setThreadLocalToIdentifyMeEndpointCall(true);
+            if (logger.isDebugEnabled()) {
+                logger.debug("Thread Local to identify Me Endpoint Call is set.");
+            }
             IdentitySCIMManager identitySCIMManager = IdentitySCIMManager.getInstance();
             String filter = "userName Eq " + MultitenantUtils.getTenantAwareUsername(authorization);
 
@@ -360,6 +365,11 @@ public class UserResource extends AbstractResource {
             return handleCharonException(e, encoder);
         } catch (FormatNotSupportedException e) {
             return handleFormatNotSupportedException(e);
+        } finally {
+            SCIMCommonUtils.unsetThreadLocalToIdentifyMeEndpointCall();
+            if (logger.isDebugEnabled()) {
+                logger.debug("Thread Local to identify Me Endpoint Call is unset.");
+            }
         }
     }
 

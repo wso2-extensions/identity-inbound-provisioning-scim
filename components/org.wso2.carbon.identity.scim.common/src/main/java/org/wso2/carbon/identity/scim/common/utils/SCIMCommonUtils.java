@@ -72,6 +72,12 @@ public class SCIMCommonUtils {
      */
     private static ThreadLocal threadLocalIsManagedThroughSCIMEP = new ThreadLocal();
 
+    /**
+     * Thread local used to identify whether the endpoint that initiates requests to SCIMUserManager is /Me.
+     * This is used to improve performance when retrieving user attributes.
+     */
+    private static ThreadLocal<Boolean> isMeEndpointCall = new ThreadLocal<>();
+
     private SCIMCommonUtils(){}
 
     public static void init() {
@@ -136,6 +142,23 @@ public class SCIMCommonUtils {
 
     public static void setThreadLocalIsManagedThroughSCIMEP(Boolean value) {
         threadLocalIsManagedThroughSCIMEP.set(value);
+    }
+
+    public static void setThreadLocalToIdentifyMeEndpointCall(Boolean value) {
+        isMeEndpointCall.remove();
+        isMeEndpointCall.set(value);
+    }
+
+    public static void unsetThreadLocalToIdentifyMeEndpointCall() {
+        isMeEndpointCall.remove();
+    }
+
+    public static boolean getThreadLocalToIdentifyMeEndpointCall() {
+        if (isMeEndpointCall.get() == null) {
+            return false;
+        } else {
+            return isMeEndpointCall.get();
+        }
     }
 
     public static String getGlobalConsumerId() {
