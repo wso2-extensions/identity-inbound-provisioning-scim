@@ -25,7 +25,7 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.scim.common.listener.SCIMTenantMgtListener;
 import org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener;
-import org.wso2.carbon.identity.scim.common.utils.AdminAttributeManager;
+import org.wso2.carbon.identity.scim.common.utils.AdminAttributeUtil;
 import org.wso2.carbon.identity.scim.common.utils.SCIMCommonUtils;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
@@ -86,8 +86,8 @@ public class SCIMCommonComponent {
 
             SCIMCommonUtils.init();
 
-            AdminAttributeManager.updateAdminUser(MultitenantConstants.SUPER_TENANT_ID, true);
-            AdminAttributeManager.updateAdminGroup(MultitenantConstants.SUPER_TENANT_ID);
+            AdminAttributeUtil.updateAdminUser(MultitenantConstants.SUPER_TENANT_ID, true);
+            AdminAttributeUtil.updateAdminGroup(MultitenantConstants.SUPER_TENANT_ID);
 
             if (logger.isDebugEnabled()) {
                 logger.debug("SCIM Common component activated successfully.");

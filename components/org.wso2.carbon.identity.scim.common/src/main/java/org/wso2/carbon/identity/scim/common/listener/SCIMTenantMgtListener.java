@@ -21,20 +21,8 @@ package org.wso2.carbon.identity.scim.common.listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.AbstractIdentityTenantMgtListener;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
-import org.wso2.carbon.identity.scim.common.internal.SCIMCommonComponentHolder;
-import org.wso2.carbon.identity.scim.common.utils.AdminAttributeManager;
-import org.wso2.carbon.identity.scim.common.utils.SCIMCommonUtils;
+import org.wso2.carbon.identity.scim.common.utils.AdminAttributeUtil;
 import org.wso2.carbon.stratos.common.exception.StratosException;
-import org.wso2.carbon.stratos.common.util.ClaimsMgtUtil;
-import org.wso2.carbon.user.core.UserCoreConstants;
-import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.charon.core.schema.SCIMConstants;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 
 /**
@@ -48,8 +36,8 @@ public class SCIMTenantMgtListener extends AbstractIdentityTenantMgtListener {
     @Override
     public void onTenantInitialActivation(int tenantId) throws StratosException {
         //Update admin user attributes.
-        AdminAttributeManager.updateAdminUser(tenantId, false);
+        AdminAttributeUtil.updateAdminUser(tenantId, false);
         //Update admin group attributes.
-        AdminAttributeManager.updateAdminGroup(tenantId);
+        AdminAttributeUtil.updateAdminGroup(tenantId);
     }
 }

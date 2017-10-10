@@ -41,12 +41,12 @@ import java.util.UUID;
 
 
 /**
- * AdminAttributeManager for managing the admin user's and group's SCIM attributes.
+ * AdminAttributeUtil for managing the admin user's and group's SCIM attributes.
  *
  */
-public class AdminAttributeManager {
+public class AdminAttributeUtil {
 
-    private static Log log = LogFactory.getLog(AdminAttributeManager.class);
+    private static Log log = LogFactory.getLog(AdminAttributeUtil.class);
 
     /**
      * Update admin user attribute under given tenant.
