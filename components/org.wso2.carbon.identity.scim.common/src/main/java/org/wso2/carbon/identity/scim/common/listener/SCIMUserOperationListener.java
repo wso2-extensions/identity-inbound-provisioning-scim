@@ -18,11 +18,9 @@
 
 package org.wso2.carbon.identity.scim.common.listener;
 
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -40,6 +38,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * This is to perform SCIM related operation on User Operations.
@@ -455,7 +454,15 @@ public class SCIMUserOperationListener extends AbstractIdentityUserOperationEven
             attributes = new HashMap<>();
         }
 
-        if (!attributes.containsKey(SCIMConstants.ID_URI)) {
+        Pattern pattern = Pattern.compile("urn:.*scim:schemas:core:.\\.0:id");
+        boolean containsScimIdClaim = false;
+        for (String claimUri : attributes.keySet()) {
+            if (pattern.matcher(claimUri).matches()) {
+                containsScimIdClaim = true;
+                break;
+            }
+        }
+        if (!containsScimIdClaim) {
             String id = UUID.randomUUID().toString();
             attributes.put(SCIMConstants.ID_URI, id);
         }
