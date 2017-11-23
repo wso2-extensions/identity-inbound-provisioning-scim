@@ -1088,21 +1088,20 @@ public class SCIMUserManager implements UserManager {
     public Group patchGroup(Group oldGroup, Group newGroup) throws CharonException {
         //if operating in dumb mode, do not persist the operation, only provision to providers
 
-        String userStoreDomainName = IdentityUtil.extractDomainFromName(oldGroup.getDisplayName());
-        if (StringUtils.isNotBlank(userStoreDomainName) && !isSCIMEnabled(userStoreDomainName) &&
-                !isInternalOrApplicationGroup(userStoreDomainName)) {
-            throw new CharonException("Cannot retrieve group through scim to user store " + ". SCIM is not " +
-                    "enabled for user store " + userStoreDomainName);
-        }
-
-
         if (getServiceProvider(isBulkUserAdd).getInboundProvisioningConfig().isDumbMode()) {
             if (log.isDebugEnabled()) {
-                log.debug("This instance is operating in dumb mode. " +
-                          "Hence, operation is not persisted, it will only be provisioned.");
+                log.debug("This instance is operating in dumb mode. Hence, operation is not persisted, it will " +
+                        "only be provisioned.");
             }
             this.provision(ProvisioningOperation.PATCH, newGroup);
             return newGroup;
+        }
+
+        String userStoreDomainName = IdentityUtil.extractDomainFromName(oldGroup.getDisplayName());
+        if (StringUtils.isNotBlank(userStoreDomainName) && !isSCIMEnabled(userStoreDomainName) &&
+                !isInternalOrApplicationGroup(userStoreDomainName)) {
+            throw new CharonException("Cannot retrieve group through scim to user store. SCIM is not enabled for user" +
+                    " store " + userStoreDomainName);
         }
 
         String primaryDomain = IdentityUtil.getPrimaryDomainName();
