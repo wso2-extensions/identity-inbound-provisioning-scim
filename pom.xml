@@ -277,7 +277,7 @@
 
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
 
-        <identity.framework.version>5.7.0</identity.framework.version>
+        <identity.framework.version>5.10.52</identity.framework.version>
         <identity.inbound.provisioning.scim.export.version>${project.version}
         </identity.inbound.provisioning.scim.export.version>
         <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
