@@ -49,6 +49,9 @@ public class SCIMProviderConstants {
     public static final String SORT_ORDER = "SORT_ORDER";
     public static final String PATCH = "PATCH";
 
+    public static final String DISPLAY_NAME = "displayName";
+    public static final String WILDCARD_ASTERISK = "*";
+
     private SCIMProviderConstants(){}
 
 }
