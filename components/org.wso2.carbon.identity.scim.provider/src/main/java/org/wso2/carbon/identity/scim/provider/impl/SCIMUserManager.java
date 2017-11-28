@@ -44,11 +44,13 @@ import org.wso2.carbon.identity.scim.common.utils.AttributeMapper;
 import org.wso2.carbon.identity.scim.common.utils.IdentitySCIMException;
 import org.wso2.carbon.identity.scim.common.utils.SCIMCommonConstants;
 import org.wso2.carbon.identity.scim.common.utils.SCIMCommonUtils;
+import org.wso2.carbon.identity.scim.provider.util.SCIMProviderConstants;
 import org.wso2.carbon.user.api.ClaimMapping;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.claim.ClaimManager;
+import org.wso2.carbon.user.core.common.AbstractUserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.wso2.charon.core.attributes.Attribute;
@@ -861,28 +863,40 @@ public class SCIMUserManager implements UserManager {
         List<Group> filteredGroups = new ArrayList<>();
         Group group = null;
         try {
-            if (attributeValue != null && carbonUM.isExistingRole(attributeValue, false)) {
-                //skip internal roles
-                if ((CarbonConstants.REGISTRY_ANONNYMOUS_ROLE_NAME.equals(attributeValue)) ||
-                        UserCoreUtil.isEveryoneRole(attributeValue, carbonUM.getRealmConfiguration()) ||
-                        UserCoreUtil.isPrimaryAdminRole(attributeValue, carbonUM.getRealmConfiguration())) {
-                    throw new IdentitySCIMException("Internal roles do not support SCIM.");
-                }
-                /********we expect only one result**********/
-                //construct the group name with domain -if not already provided, in order to support
-                //multiple user store feature with SCIM.
-                String groupNameWithDomain = null;
-                if (attributeValue.indexOf(CarbonConstants.DOMAIN_SEPARATOR) > 0) {
-                    groupNameWithDomain = attributeValue;
-                } else {
-                    groupNameWithDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME + CarbonConstants.DOMAIN_SEPARATOR
-                            + attributeValue;
-                }
-                group = getGroupOnlyWithMetaAttributes(groupNameWithDomain);
-                filteredGroups.add(group);
-            } else {
+            if (attributeValue == null) {
                 //returning null will send a resource not found error to client by Charon.
                 return Collections.emptyList();
+
+            } else {
+                if (carbonUM instanceof AbstractUserStoreManager &&
+                        SCIMProviderConstants.DISPLAY_NAME.equalsIgnoreCase(filterAttribute) &&
+                        attributeValue.contains(SCIMProviderConstants.WILDCARD_ASTERISK)) {
+
+                    AbstractUserStoreManager abstractUserStoreManager = (AbstractUserStoreManager) carbonUM;
+                    String[] roles = abstractUserStoreManager.getRoleNames(attributeValue, -1, false, true, true);
+
+                    if (roles != null) {
+                        for (String role: roles) {
+                            group = buildGroup(role);
+                            filteredGroups.add(group);
+                        }
+                    }
+                } else if (carbonUM.isExistingRole(attributeValue, false)) {
+                    //skip internal roles
+                    if ((CarbonConstants.REGISTRY_ANONNYMOUS_ROLE_NAME.equals(attributeValue)) ||
+                            UserCoreUtil.isEveryoneRole(attributeValue, carbonUM.getRealmConfiguration()) ||
+                            UserCoreUtil.isPrimaryAdminRole(attributeValue, carbonUM.getRealmConfiguration())) {
+                        throw new IdentitySCIMException("Internal roles do not support SCIM.");
+                    }
+                    /********we expect only one result**********/
+                    //construct the group name with domain -if not already provided, in order to support
+                    //multiple user store feature with SCIM.
+                    group = buildGroup(attributeValue);
+                    filteredGroups.add(group);
+                } else {
+                    //returning null will send a resource not found error to client by Charon.
+                    return Collections.emptyList();
+                }
             }
         } catch (org.wso2.carbon.user.core.UserStoreException e) {
             throw new CharonException("Error in filtering groups by attribute name : " + filterAttribute + ", " +
@@ -894,6 +908,17 @@ public class SCIMUserManager implements UserManager {
             throw new CharonException("Error in retrieving SCIM Group information from database.", e);
         }
         return filteredGroups;
+    }
+
+    private Group buildGroup(String role) throws CharonException, IdentitySCIMException, UserStoreException {
+        String groupNameWithDomain;
+        if (role.indexOf(CarbonConstants.DOMAIN_SEPARATOR) > 0) {
+            groupNameWithDomain = role;
+        } else {
+            groupNameWithDomain = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME +
+                    CarbonConstants.DOMAIN_SEPARATOR + role;
+        }
+        return getGroupOnlyWithMetaAttributes(groupNameWithDomain);
     }
 
     @Override
