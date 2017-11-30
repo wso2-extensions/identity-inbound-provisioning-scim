@@ -1049,7 +1049,14 @@ public class SCIMUserManager implements UserManager {
                 //find out added members and deleted members..
                 List<String> oldMembers = oldGroup.getMembersWithDisplayName();
                 List<String> newMembers = newGroup.getMembersWithDisplayName();
+
+                //get users with operation":"delete"
+                List<String> deleteRequestedMembers =
+                        newGroup.getMembersWithDisplayName(SCIMConstants.CommonSchemaConstants.OPERATION_DELETE);
+
                 if (newMembers != null) {
+                    //Remove users with operation":"delete" from newMembers list
+                    newMembers.removeAll(deleteRequestedMembers);
 
                     List<String> addedMembers = new ArrayList<>();
                     List<String> deletedMembers = new ArrayList<>();
