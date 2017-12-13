@@ -15,12 +15,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.wso2.carbon.identity.scim.common.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.ComponentContext;
+import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService;
 import org.wso2.carbon.identity.core.util.IdentityCoreInitializedEvent;
 import org.wso2.carbon.identity.scim.common.listener.SCIMTenantMgtListener;
 import org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener;
@@ -34,6 +36,7 @@ import org.wso2.charon.core.config.SCIMConfigConstants;
 import org.wso2.charon.core.config.SCIMConfigProcessor;
 import org.wso2.charon.core.config.SCIMUserSchemaExtensionBuilder;
 import org.wso2.charon.core.exceptions.CharonException;
+
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -136,6 +139,21 @@ public class SCIMCommonComponent {
         if (userOperationEventListenerServiceReg != null) {
             userOperationEventListenerServiceReg.unregister();
         }
+    }
+
+    @Reference(
+            name = "ClaimMetadataManagementService",
+            service = org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataManagementService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetClaimMetadataManagementService")
+    protected void setClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+        SCIMCommonComponentHolder.setClaimMetadataManagementService(claimMetadataManagementService);
+
+    }
+    
+    protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimMetadataManagementService) {
+        SCIMCommonComponentHolder.setClaimMetadataManagementService(null);
     }
 }
 
