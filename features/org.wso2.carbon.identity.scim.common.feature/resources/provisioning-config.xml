@@ -14,19 +14,6 @@
 ~ limitations under the License.
  -->
 <provisioning-config>
-    <scim-providers>
-        <scim-provider id="node2">
-            <Property name="userName">admin</Property>
-            <Property name="password">admin</Property>
-            <Property name="userEndpoint">https://localhost:9444/wso2/scim/Users</Property>
-            <Property name="groupEndpoint">https://localhost:9444/wso2/scim/Groups</Property>
-        </scim-provider>
-    </scim-providers>
-    <scim-consumers>
-        <!--scim-consumer id="carbon.super">
-            <scim-provider id="node2"/>
-        </scim-consumer-->
-    </scim-consumers>
     <Property name="dumb-mode">false</Property>
     <Property name="provisioning-handlers">org.wso2.carbon.identity.scim.common.impl.DefaultSCIMProvisioningHandler</Property>
     <Property name="user-schema-extension-enabled">true</Property>
