@@ -113,7 +113,7 @@ public class SCIMCommonComponent {
              unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
         if (logger.isDebugEnabled()) {
-            logger.debug("realmService set in SCIMCommonComponent bundle");
+            logger.debug("RealmService set in SCIMCommonComponent bundle.");
         }
         SCIMCommonComponentHolder.setRealmService(realmService);
     }
@@ -123,7 +123,7 @@ public class SCIMCommonComponent {
      */
     protected void unsetRealmService(RealmService realmService) {
         if (logger.isDebugEnabled()) {
-            logger.debug("realmService unset in SCIMCommonComponent bundle");
+            logger.debug("RealmService unset in SCIMCommonComponent bundle.");
         }
         SCIMCommonComponentHolder.setRealmService(null);
     }
