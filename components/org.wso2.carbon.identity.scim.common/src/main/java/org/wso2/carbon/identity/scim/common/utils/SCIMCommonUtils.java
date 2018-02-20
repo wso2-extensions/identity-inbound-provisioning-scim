@@ -208,7 +208,7 @@ public class SCIMCommonUtils {
     /**
      * Set SCIM attributes for super tenant admin users.
      */
-    public static void setAdminSCIMAttributes() {
+    public static void setAdminSCIMAttributes() throws UserStoreException {
 
         try {
             int superTenantId = IdentityTenantUtil.getTenantId(MultitenantConstants.SUPER_TENANT_DOMAIN_NAME);
@@ -242,7 +242,7 @@ public class SCIMCommonUtils {
         } catch (Exception e) {
             String msg = "Error in adding SCIM metadata to the admin in tenant domain: " +
                     MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
-            log.error(msg, e);
+            throw new UserStoreException(msg, e);
         }
     }
 

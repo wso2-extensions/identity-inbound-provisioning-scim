@@ -26,6 +26,7 @@ import org.wso2.carbon.identity.scim.common.listener.SCIMTenantMgtListener;
 import org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener;
 import org.wso2.carbon.identity.scim.common.utils.SCIMCommonUtils;
 import org.wso2.carbon.stratos.common.listeners.TenantMgtListener;
+import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.CarbonUtils;
@@ -81,6 +82,10 @@ public class SCIMCommonComponent {
             }
         } catch (CharonException e) {
             logger.error("Error in reading information from identity tables at SCIMCommonComponentStartup.", e);
+        } catch (UserStoreException e) {
+            logger.error("Error occurred while setting SCIM attributes for the Admin", e);
+        } catch (Throwable e) {
+            logger.error("Error in bundle activation." + e.getMessage(), e);
         }
     }
 
