@@ -56,7 +56,7 @@ public class AdminAttributeUtil {
      * @param validateSCIMID
      *         is allow to validate the existing SCIm ID before do the updates.
      */
-    public static void updateAdminUser(int tenantId, boolean validateSCIMID) {
+    public static void updateAdminUser(int tenantId, boolean validateSCIMID) throws UserStoreException {
 
         try {
             UserStoreManager userStoreManager =
@@ -92,8 +92,9 @@ public class AdminAttributeUtil {
                 }
             }
         } catch (Exception e) {
-            log.error("Error occurred while updating the admin user's attributes in Tenant ID : " + tenantId + ", "
-                      + "Error : " + e.getMessage(), e);
+            String msg = "Error occurred while updating the admin user's attributes in Tenant ID : " +
+                    tenantId + ",Error : " + e.getMessage();
+            throw new UserStoreException(msg, e);
         }
     }
 
