@@ -28,7 +28,7 @@ public class SCIMCommonComponentHolder {
     /**
      * Get realm service.
      *
-     * @return
+     * @return RealmService
      */
     public static RealmService getRealmService() {
 
@@ -38,7 +38,7 @@ public class SCIMCommonComponentHolder {
     /**
      * Set realm service.
      *
-     * @param realmService
+     * @param realmService Realm Service.
      */
     public static void setRealmService(RealmService realmService) {
 
