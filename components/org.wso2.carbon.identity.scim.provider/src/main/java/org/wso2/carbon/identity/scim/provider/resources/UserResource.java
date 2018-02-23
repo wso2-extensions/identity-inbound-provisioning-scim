@@ -234,6 +234,12 @@ public class UserResource extends AbstractResource {
                                String resourceString) {
         Encoder encoder = null;
         try {
+            if (StringUtils.equals(id, "me")) {
+                SCIMCommonUtils.setThreadLocalToIdentifyMeEndpointCall(true);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Thread Local to identify Me Endpoint Call is set.");
+                }
+            }
             // obtain default charon manager
             IdentitySCIMManager identitySCIMManager = IdentitySCIMManager.getInstance();
 
@@ -268,6 +274,11 @@ public class UserResource extends AbstractResource {
             return handleCharonException(e, encoder);
         } catch (FormatNotSupportedException e) {
             return handleFormatNotSupportedException(e);
+        } finally {
+            SCIMCommonUtils.unsetThreadLocalToIdentifyMeEndpointCall();
+            if (logger.isDebugEnabled()) {
+                logger.debug("Thread Local to identify Me Endpoint Call is unset.");
+            }
         }
     }
 
@@ -280,6 +291,12 @@ public class UserResource extends AbstractResource {
                                     String resourceString) {
         Encoder encoder = null;
         try {
+            if (StringUtils.equals(id, "me")) {
+                SCIMCommonUtils.setThreadLocalToIdentifyMeEndpointCall(true);
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Thread Local to identify Me Endpoint Call is set.");
+                }
+            }
             // obtain default charon manager
             IdentitySCIMManager identitySCIMManager = IdentitySCIMManager.getInstance();
 
@@ -314,6 +331,11 @@ public class UserResource extends AbstractResource {
             return handleCharonException(e, encoder);
         } catch (FormatNotSupportedException e) {
             return handleFormatNotSupportedException(e);
+        } finally {
+            SCIMCommonUtils.unsetThreadLocalToIdentifyMeEndpointCall();
+            if (logger.isDebugEnabled()) {
+                logger.debug("Thread Local to identify Me Endpoint Call is unset.");
+            }
         }
     }
 
