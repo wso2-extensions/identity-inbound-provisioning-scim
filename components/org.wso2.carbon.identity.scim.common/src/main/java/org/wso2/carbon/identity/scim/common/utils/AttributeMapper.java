@@ -20,8 +20,11 @@ package org.wso2.carbon.identity.scim.common.utils;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.charon.core.attributes.Attribute;
 import org.wso2.charon.core.attributes.ComplexAttribute;
 import org.wso2.charon.core.attributes.DefaultAttributeFactory;
@@ -47,6 +50,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.wso2.carbon.identity.scim.common.utils.SCIMCommonConstants.SCIM_COMPLEX_MULTIVALUED_ATTRIBUTE_SUPPORT_ENABLED;
+
 /**
  * This class is responsible for converting SCIM attributes in a SCIM object to
  * carbon claims and vice versa
@@ -58,8 +63,6 @@ public class AttributeMapper {
 
     /**
      * Return claims as a map of <ClaimUri (which is mapped to SCIM attribute uri),ClaimValue>
-     * TODO : This method should be broken into smaller methods for code reuse
-     * TODO : This method SHOULD be recoded. MUST implement loops
      *
      * @param scimObject
      * @return
@@ -73,153 +76,454 @@ public class AttributeMapper {
             if (SCIMConstants.UserSchemaConstants.PASSWORD.equals(attribute.getName())) {
                 continue;
             }
-            if (attribute instanceof SimpleAttribute) {
-                String attributeURI = attribute.getAttributeURI();
-                if (((SimpleAttribute) attribute).getValue() != null) {
-                    String attributeValue =
-                            AttributeUtil.getStringValueOfAttribute(((SimpleAttribute) attribute).getValue(),
-                                    ((SimpleAttribute) attribute).getDataType());
-                    // set attribute URI as the claim URI
-                    claimsMap.put(attributeURI, attributeValue);
-                }
-            } else if (attribute instanceof MultiValuedAttribute) {
-                MultiValuedAttribute multiValAttribute = (MultiValuedAttribute) attribute;
-                // get the URI of root attribute
-                String attributeURI = multiValAttribute.getAttributeURI();
-                // check if values are set as simple attributes
-                List<String> attributeValues = multiValAttribute.getValuesAsStrings();
-                if (CollectionUtils.isNotEmpty(attributeValues)) {
-                    String values = null;
-                    for (String attributeValue : attributeValues) {
-                        if (values != null) {
-                            values += attributeValue + ",";
-                        } else {
-                            values = attributeValue + ",";
-                        }
-                    }
-                    claimsMap.put(attributeURI, values);
-                }
-                // check if values are set as complex values
-                // NOTE: in carbon, we only support storing of type and value of
-                // a multi-valued attribute
-                List<Attribute> complexAttributeList = multiValAttribute.getValuesAsSubAttributes();
-                for (Attribute complexAttribute : complexAttributeList) {
-                    Map<String, Attribute> subAttributes =
-                            ((ComplexAttribute) complexAttribute).getSubAttributes();
-                    SimpleAttribute typeAttribute =
-                            (SimpleAttribute) subAttributes.get(SCIMConstants.CommonSchemaConstants.TYPE);
-                    String valueAttriubuteURI;
-                    // construct attribute URI
-                    if (typeAttribute != null) {
-                        String typeValue = (String) typeAttribute.getValue();
-                        valueAttriubuteURI = attributeURI + "." + typeValue;
-                    } else {
-                        valueAttriubuteURI = attributeURI;
-                    }
-                    SimpleAttribute valueAttribute =
-                            (SimpleAttribute) subAttributes.get(SCIMConstants.CommonSchemaConstants.VALUE);
-                    if (valueAttribute != null && valueAttribute.getValue() != null) {
-                        // put it in claims
-                        claimsMap.put(valueAttriubuteURI,
-                                AttributeUtil.getStringValueOfAttribute(valueAttribute.getValue(),
-                                        valueAttribute.getDataType()));
-                    }
-                }
-            } else if (attribute instanceof ComplexAttribute) {
-                // reading attributes list of the complex attribute
-                ComplexAttribute complexAttribute = (ComplexAttribute) attribute;
-                Map<String, Attribute> attributes = null;
-                if (complexAttribute.getSubAttributes() != null &&
-                        MapUtils.isNotEmpty(complexAttribute.getSubAttributes())) {
-                    attributes = complexAttribute.getSubAttributes();
-                } else if (complexAttribute.getAttributes() != null &&
-                        MapUtils.isNotEmpty(complexAttribute.getAttributes())) {
-                    attributes = complexAttribute.getAttributes();
-                }
-                if (attributes != null) {
-                    for (Attribute entry : attributes.values()) {
-                        // if the attribute a simple attribute
-                        if (entry instanceof SimpleAttribute) {
-                            SimpleAttribute simpleAttribute = (SimpleAttribute) entry;
-                            if (simpleAttribute.getValue() != null) {
-                                claimsMap.put(entry.getAttributeURI(),
-                                        AttributeUtil.getStringValueOfAttribute(simpleAttribute.getValue(),
-                                                simpleAttribute.getDataType()));
-                            }
-                        } else if (entry instanceof MultiValuedAttribute) {
-                            MultiValuedAttribute multiValAttribute = (MultiValuedAttribute) entry;
-                            // get the URI of root attribute
-                            String attributeURI = multiValAttribute.getAttributeURI();
-                            // check if values are set as simple attributes
-                            List<String> attributeValues = multiValAttribute.getValuesAsStrings();
-                            if (CollectionUtils.isNotEmpty(attributeValues)) {
-                                String values = null;
-                                for (String attributeValue : attributeValues) {
-                                    if (values != null) {
-                                        values += attributeValue + ",";
-                                    } else {
-                                        values = attributeValue + ",";
-                                    }
-                                }
-                                claimsMap.put(attributeURI, values);
-                            }
-                            // check if values are set as complex values
-                            // NOTE: in carbon, we only support storing of type and
-                            // value of a multi-valued attribute
-                            List<Attribute> complexAttributeList = multiValAttribute.getValuesAsSubAttributes();
-                            for (Attribute complexAttrib : complexAttributeList) {
-                                Map<String, Attribute> subAttributes =
-                                        ((ComplexAttribute) complexAttrib).getSubAttributes();
-                                SimpleAttribute typeAttribute =
-                                        (SimpleAttribute) subAttributes.get(SCIMConstants.CommonSchemaConstants.TYPE);
-                                String valueAttriubuteURI;
-                                // construct attribute URI
-                                if (typeAttribute != null) {
-                                    String typeValue = (String) typeAttribute.getValue();
-                                    valueAttriubuteURI = attributeURI + "." + typeValue;
-                                } else {
-                                    valueAttriubuteURI = attributeURI;
-                                }
-                                SimpleAttribute valueAttribute =
-                                        (SimpleAttribute) subAttributes.get(SCIMConstants.CommonSchemaConstants.VALUE);
-                                if (valueAttribute != null && valueAttribute.getValue() != null) {
-                                    // put it in claims
-                                    claimsMap.put(valueAttriubuteURI,
-                                            AttributeUtil.getStringValueOfAttribute(valueAttribute.getValue(),
-                                                    valueAttribute.getDataType()));
-                                }
-                            }
 
-                        } else if (entry instanceof ComplexAttribute) {
-                            // reading attributes list of the complex attribute
-                            ComplexAttribute entryOfComplexAttribute = (ComplexAttribute) entry;
-                            Map<String, Attribute> entryAttributes = null;
-                            if (entryOfComplexAttribute.getSubAttributes() != null &&
-                                    MapUtils.isNotEmpty(entryOfComplexAttribute.getSubAttributes())) {
-                                entryAttributes = entryOfComplexAttribute.getSubAttributes();
-                            } else if (entryOfComplexAttribute.getAttributes() != null &&
-                                    MapUtils.isNotEmpty(entryOfComplexAttribute.getAttributes())) {
-                                entryAttributes = entryOfComplexAttribute.getAttributes();
-                            }
-                            if (entryAttributes != null) {
-                                for (Attribute subEntry : entryAttributes.values()) {
-                                    // if the attribute a simple attribute
-                                    if (subEntry instanceof SimpleAttribute) {
-                                        SimpleAttribute simpleAttribute = (SimpleAttribute) subEntry;
-                                        if (simpleAttribute.getValue() != null) {
-                                            claimsMap.put(subEntry.getAttributeURI(),
-                                                    AttributeUtil.getStringValueOfAttribute(simpleAttribute.getValue(),
-                                                            simpleAttribute.getDataType()));
-                                        }
-                                    }
-                                }
-                            }
+            claimsMap.putAll(convertAttributesToClaims(attribute));
+
+        }
+        return claimsMap;
+    }
+
+    /**
+     * Convert SCIM attribute to a map of claims
+     *
+     * @param attribute
+     * @return Return claims as a map of <ClaimUri (which is mapped to SCIM attribute uri), ClaimValue>
+     * @throws CharonException
+     */
+    private static Map<String, String> convertAttributesToClaims(Attribute attribute) throws CharonException {
+
+        Map<String, String> claimsMap = new HashMap<>();
+
+        if (attribute instanceof SimpleAttribute) {
+            SimpleAttribute simpleAttribute = (SimpleAttribute) attribute;
+            convertSimpleAttributeToClaims(simpleAttribute, claimsMap);
+        } else if (attribute instanceof ComplexAttribute) {
+            ComplexAttribute complexAttribute = (ComplexAttribute) attribute;
+            convertComplexAttributeToClaims(complexAttribute, claimsMap);
+        } else if (attribute instanceof MultiValuedAttribute) {
+            MultiValuedAttribute multiValuedAttribute = (MultiValuedAttribute) attribute;
+            convertMultiValuedAttributeToClaims(multiValuedAttribute, claimsMap);
+        } else {
+            if (log.isDebugEnabled()) {
+                if (attribute == null) {
+                    log.debug("Attribute cannot be null for claims conversion");
+                } else {
+                    log.debug("Unsupported attribute type: " + attribute.getClass().getName() + " for Attribute to " +
+                            "claims conversion");
+                }
+            }
+        }
+
+        return claimsMap;
+    }
+
+    /**
+     * Convert SCIM {@link SimpleAttribute} to a map of claims. Example SCIM {@link SimpleAttribute} looks like below,
+     * <pre>
+     *     "id": "2819c223-7f76-453a-919d-413861904646"
+     * </pre>
+     *
+     * @param simpleAttribute
+     * @param claimsMap
+     * @throws CharonException
+     */
+    private static void convertSimpleAttributeToClaims(SimpleAttribute simpleAttribute, Map<String, String>
+            claimsMap) throws CharonException {
+
+        String attributeURI = simpleAttribute.getAttributeURI();
+        String attributeName = simpleAttribute.getName();
+
+        Object attributeValue = simpleAttribute.getValue();
+        SCIMSchemaDefinitions.DataType attributeType = simpleAttribute.getDataType();
+
+        if (attributeValue != null) {
+            String stringAttributeValue = AttributeUtil.getStringValueOfAttribute(attributeValue, attributeType);
+            claimsMap.put(attributeURI, stringAttributeValue);
+            if (log.isDebugEnabled()) {
+                String debugMessage = "Adding simple attribute: " + attributeName + " with claim uri: " + attributeURI;
+                if (IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.USER_CLAIMS)) {
+                    debugMessage += " with value: " + stringAttributeValue;
+                }
+                log.debug(debugMessage);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("SimpleAttribute: " + attributeName + " value is null. Skip adding as a claim");
+            }
+        }
+    }
+
+    /**
+     * Convert SCIM {@link ComplexAttribute} to a map of claims. Example SCIM {@link ComplexAttribute} looks like below,
+     * <pre>
+     *     "name":{
+     *        "givenName":"John",
+     *        "familyName":"Doe"
+     *     }
+     * </pre>
+     *
+     * @param complexAttribute
+     * @param claimsMap
+     * @throws CharonException
+     */
+    private static void convertComplexAttributeToClaims(ComplexAttribute complexAttribute, Map<String, String>
+            claimsMap) throws CharonException {
+
+        if (complexAttribute == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("ComplexAttribute is null. Skip adding as a claim");
+            }
+            return;
+        }
+
+        // reading attributes list of the complex attribute
+        Map<String, Attribute> attributes = null;
+        if (MapUtils.isNotEmpty(complexAttribute.getSubAttributes())) {
+            attributes = complexAttribute.getSubAttributes();
+        } else if (MapUtils.isNotEmpty(complexAttribute.getAttributes())) {
+            attributes = complexAttribute.getAttributes();
+        }
+
+        if (MapUtils.isNotEmpty(attributes)) {
+            for (Attribute attribute : attributes.values()) {
+                claimsMap.putAll(convertAttributesToClaims(attribute));
+                if (log.isDebugEnabled()) {
+                    if (attribute != null) {
+                        log.debug("Adding subAttribute: " + attribute.getName() + " under complex attribute");
+                    } else {
+                        log.debug("SubAttribute is null under complex attribute");
+
+                    }
+                }
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("ComplexAttribute does not contains sub attributes. Skip adding as a claim");
+            }
+        }
+
+    }
+
+    /**
+     * Convert SCIM {@link MultiValuedAttribute} attribute to a map of claims. Example SCIM
+     * {@link MultiValuedAttribute} types looks like below,
+     * <pre>
+     *     "emails": ["bjensen@example.com","babs@example.com"]
+     * </pre>
+     *
+     * <pre>
+     *     "emails": [
+     *        {"value":"bjensen@example.com"},
+     *        {"value":"babs@example.com"}
+     *     ]
+     * </pre>
+     *
+     * <pre>
+     *     "emails": [
+     *        {"type":"work","value":"bjensen@example.com"},
+     *        {"type":"home","value":"babs@example.com"}
+     *     ]
+     * </pre>
+     *
+     * <pre>
+     *       "addresses": [
+     *          {"type": "work","streetAddress": "100 Universal City Plaza","locality": "Hollywood","region": "CA"},
+     *          {"type": "home","streetAddress": "456 Hollywood Blvd","locality": "Hollywood","region": "CA"}
+     *       ]
+     * </pre>
+     *
+     * @param multiValuedAttribute
+     * @param claimsMap
+     * @throws CharonException
+     */
+    private static void convertMultiValuedAttributeToClaims(MultiValuedAttribute multiValuedAttribute, Map<String,
+            String> claimsMap) throws CharonException {
+
+        if (isSimpleMultiValuedAttribute(multiValuedAttribute)) {
+            convertSimpleMultiValuedAttributeToClaims(multiValuedAttribute, claimsMap);
+        } else if (isComplexMultiValuedAttribute(multiValuedAttribute)) {
+            convertComplexMultiValuedAttributeToClaims(multiValuedAttribute, claimsMap);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("MultiValuedAttribute does not contains sub elements. Skip adding as a claim");
+            }
+        }
+    }
+
+    private static boolean isSimpleMultiValuedAttribute(MultiValuedAttribute multiValuedAttribute) {
+
+        List<String> attributeValues = multiValuedAttribute.getValuesAsStrings();
+        return CollectionUtils.isNotEmpty(attributeValues);
+    }
+
+    private static boolean isComplexMultiValuedAttribute(MultiValuedAttribute multiValuedAttribute) {
+
+        List<Attribute> subAttributeList = multiValuedAttribute.getValuesAsSubAttributes();
+        return CollectionUtils.isNotEmpty(subAttributeList);
+    }
+
+    /**
+     * Convert SCIM simple {@link MultiValuedAttribute} attribute to a map of claims. Example SCIM simple
+     * {@link MultiValuedAttribute} looks like below,
+     * <pre>
+     *     "emails": ["bjensen@example.com","babs@example.com"]
+     * </pre>
+     *
+     * @param simpleMultiValuedAttribute
+     * @throws CharonException
+     */
+    private static void convertSimpleMultiValuedAttributeToClaims(MultiValuedAttribute simpleMultiValuedAttribute,
+                                                                  Map<String, String> claimsMap) {
+        
+        if (!isSimpleMultiValuedAttribute(simpleMultiValuedAttribute)) {
+            return;
+        }
+
+        String attributeURI = simpleMultiValuedAttribute.getAttributeURI();
+        String attributeName = simpleMultiValuedAttribute.getName();
+
+        List<String> attributeValues = simpleMultiValuedAttribute.getValuesAsStrings();
+
+        String values = null;
+        for (String attributeValue : attributeValues) {
+            if (values == null) {
+                values = attributeValue;
+            } else {
+                // TODO: Use multi attribute separator
+                values += "," + attributeValue;
+            }
+        }
+
+        if (StringUtils.isNotEmpty(values)) {
+            claimsMap.put(attributeURI, values);
+            if (log.isDebugEnabled()) {
+                String debugMessage = "Adding simple multivalued attribute: " + attributeName + " with claim uri: " +
+                        attributeURI;
+                if (IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.USER_CLAIMS)) {
+                    debugMessage += " with value: " + values;
+                }
+                log.debug(debugMessage);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Simple MultiValuedAttribute: " + attributeName + " sub elements are empty. Skip adding as " +
+                        "a claim");
+            }
+        }
+    }
+
+    /**
+     * Convert SCIM complex {@link MultiValuedAttribute} attribute to a map of claims. Example SCIM complex
+     * {@link MultiValuedAttribute} types looks like below,
+     * <pre>
+     *     "emails": [
+     *        {"value":"bjensen@example.com"},
+     *        {"value":"babs@example.com"}
+     *     ]
+     * </pre>
+     *
+     * <pre>
+     *     "emails": [
+     *        {"type":"work","value":"bjensen@example.com"},
+     *        {"type":"home","value":"babs@example.com"}
+     *     ]
+     * </pre>
+     *
+     * <pre>
+     *       "addresses": [
+     *          {"type": "work","streetAddress": "100 Universal City Plaza","locality": "Hollywood","region": "CA"},
+     *          {"type": "home","streetAddress": "456 Hollywood Blvd","locality": "Hollywood","region": "CA"}
+     *       ]
+     * </pre>
+     *
+     * @param complexMultiValuedAttribute
+     * @throws CharonException
+     */
+    private static void convertComplexMultiValuedAttributeToClaims(MultiValuedAttribute complexMultiValuedAttribute,
+                                                                   Map<String, String> claimsMap) throws
+            CharonException {
+
+        if (!isComplexMultiValuedAttribute(complexMultiValuedAttribute)) {
+            return;
+        }
+
+        String attributeURI = complexMultiValuedAttribute.getAttributeURI();
+        String attributeName = complexMultiValuedAttribute.getName();
+
+        List<Attribute> subAttributeList = complexMultiValuedAttribute.getValuesAsSubAttributes();
+
+        if (CollectionUtils.isEmpty(subAttributeList)) {
+            if (log.isDebugEnabled()) {
+                log.debug("Type sub attribute list cannot be null for Complex MultiValuedAttribute: " + attributeName
+                        + ". Skip adding as a claim");
+            }
+            return;
+        }
+
+        boolean isSingularAdvancedComplexMultiValuedAttribute = false;
+        if (subAttributeList.size() == 1) {
+            isSingularAdvancedComplexMultiValuedAttribute = true;
+        }
+
+        for (Attribute arrayElementAttribute : subAttributeList) {
+
+            if (arrayElementAttribute instanceof ComplexAttribute) {
+
+                ComplexAttribute arrayElementComplexAttribute = (ComplexAttribute) arrayElementAttribute;
+                String type = getStringValueOfSubAttribute(arrayElementComplexAttribute, SCIMConstants
+                        .CommonSchemaConstants.TYPE);
+
+                if (StringUtils.isNotEmpty(type)) {
+
+                    Map<String, String> subClaimsMap = convertAttributesToClaims(arrayElementComplexAttribute);
+
+                    String value = getStringValueOfSubAttribute(arrayElementComplexAttribute, SCIMConstants
+                            .CommonSchemaConstants.VALUE);
+                    if (value != null) {
+                        convertBasicComplexMultiValuedAttributeToClaims(attributeURI, type, value, claimsMap);
+                    } else {
+                        convertAdvancedComplexMultiValuedAttributeToClaims(subClaimsMap, attributeURI, type,
+                                claimsMap, isSingularAdvancedComplexMultiValuedAttribute);
+                    }
+                } else {
+                    // TODO: Should handle this properly as type is not mandatory as per spec
+                    if (log.isDebugEnabled()) {
+                        log.debug("Type attribute cannot be null for sub attribute: " + arrayElementComplexAttribute
+                                + " of Complex MultiValuedAttribute: " + attributeName + ". Skip adding as a claim");
+                    }
+                }
+            } else {
+                if (log.isDebugEnabled()) {
+                    if (arrayElementAttribute != null) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Unsupported sub attribute type: " + arrayElementAttribute.getClass().getName()
+                                    + " for Complex MultiValuedAttribute: " + attributeName + ". Skip adding as a " +
+                                    "claim");
                         }
+                    } else {
+                        log.debug("A sub Attribute is null of Complex MultiValuedAttribute: " + attributeName + ". " +
+                                "Skip adding sub attribute as a claim");
+
                     }
                 }
             }
         }
-        return claimsMap;
+    }
+
+    /**
+     * Convert SCIM basic complex {@link MultiValuedAttribute} attribute to a map of claims. Example SCIM basic complex
+     * {@link MultiValuedAttribute} types looks like below,
+     * <pre>
+     *     "emails": [
+     *        {"type":"work","value":"bjensen@example.com"},
+     *        {"type":"home","value":"babs@example.com"}
+     *     ]
+     * </pre>
+     *
+     * @param attributeURI
+     * @param type
+     * @param value
+     * @param claimsMap
+     */
+    private static void convertBasicComplexMultiValuedAttributeToClaims(String attributeURI, String type, String
+            value, Map<String, String> claimsMap) {
+
+        String modifiedAttributeURI = attributeURI + "." + type;
+        claimsMap.put(modifiedAttributeURI, value);
+
+        if (log.isDebugEnabled()) {
+            String debugMessage = "Modifying the claim uri from: " + attributeURI + " to: " + modifiedAttributeURI;
+            if (IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.USER_CLAIMS)) {
+                debugMessage += " for value: " + value;
+            }
+            log.debug(debugMessage);
+
+        }
+    }
+
+    /**
+     * Convert SCIM advanced complex {@link MultiValuedAttribute} attribute to a map of claims. Example SCIM advanced
+     * complex {@link MultiValuedAttribute} types looks like below,
+     * <pre>
+     *       "addresses": [
+     *          {"type": "work","streetAddress": "100 Universal City Plaza","locality": "Hollywood","region": "CA"},
+     *          {"type": "home","streetAddress": "456 Hollywood Blvd","locality": "Hollywood","region": "CA"}
+     *       ]
+     * </pre>
+     *
+     * @param subClaimsMap
+     * @param attributeURI
+     * @param type
+     * @param claimsMap
+     */
+    private static void convertAdvancedComplexMultiValuedAttributeToClaims(Map<String, String> subClaimsMap, String
+            attributeURI, String type, Map<String, String> claimsMap, boolean
+            isSingularAdvancedComplexMultiValuedAttribute) {
+
+        boolean isComplexMultivaluedSupportEnabled = Boolean.parseBoolean(IdentityUtil.getProperty
+                (SCIM_COMPLEX_MULTIVALUED_ATTRIBUTE_SUPPORT_ENABLED));
+
+        if (!isSingularAdvancedComplexMultiValuedAttribute && isComplexMultivaluedSupportEnabled) {
+
+            Map<String, String> modifiedSubClaimsMap = new HashMap<>();
+
+            for (Map.Entry<String, String> entry : subClaimsMap.entrySet()) {
+                String subAttributeURI = entry.getKey();
+
+                if (subAttributeURI == null) {
+                    if (type.equals(entry.getValue())) {
+
+                        if (log.isDebugEnabled()) {
+                            log.debug("Skip adding type attribute as a claim for complex attributeURI: " +
+                                    attributeURI + " with type: " + type);
+                        }
+                        continue;
+                    } else {
+                        if (log.isDebugEnabled()) {
+                            log.debug("subAttributeURI cannot be null for sub attribute with value: " + entry.getValue()
+                                    + " in complex attributeURI: " + attributeURI);
+                        }
+                    }
+                }
+
+                String modifiedSubAttributeURI = subAttributeURI.replace(attributeURI, attributeURI + "#" + type);
+                modifiedSubClaimsMap.put(modifiedSubAttributeURI, entry.getValue());
+
+                if (log.isDebugEnabled()) {
+                    String debugMessage = "Modifying the claim uri from: " + attributeURI + " to: " +
+                            modifiedSubAttributeURI;
+                    if (IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.USER_CLAIMS)) {
+                        debugMessage += " for value: " + entry.getValue();
+                    }
+                    log.debug(debugMessage);
+                }
+            }
+
+            claimsMap.putAll(modifiedSubClaimsMap);
+        }
+    }
+
+    private static String getStringValueOfSubAttribute(ComplexAttribute complexAttribute, String attributeName) {
+
+        if (complexAttribute == null) {
+            return null;
+        }
+
+        Map<String, Attribute> subAttributes = complexAttribute.getSubAttributes();
+
+        if (MapUtils.isEmpty(subAttributes)) {
+            return null;
+        }
+
+        Attribute attribute = subAttributes.get(attributeName);
+
+        if (attribute instanceof SimpleAttribute) {
+            SimpleAttribute simpleAttribute = ((SimpleAttribute) attribute);
+            return (String) simpleAttribute.getValue();
+
+        }
+
+        return null;
     }
 
     /**
@@ -298,7 +602,7 @@ public class AttributeMapper {
                 /*differenciate between sub attribute of Complex attribute and a Multivalued attribute
                 with complex value*/
                 if (isMultivalued(parentAttributeName, scimObjectType)) {
-                    //create map with complex value
+                    //create map with complex value (basic complex values)
                     Map<String, Object> complexValue = new HashMap<>();
                     complexValue.put(SCIMConstants.CommonSchemaConstants.TYPE, attributeNames[1]);
                     complexValue.put(SCIMConstants.CommonSchemaConstants.VALUE,
@@ -319,25 +623,116 @@ public class AttributeMapper {
                         ((AbstractSCIMObject) scimObject).setAttribute(multivaluedAttribute);
                     }
                 } else {
-                    //sub attribute of a complex attribute
-                    AttributeSchema subAttributeSchema = getAttributeSchema(attributeNames[1], scimObjectType);
-                    //we assume sub attribute is simple attribute
-                    SimpleAttribute simpleAttribute =
-                            new SimpleAttribute(attributeNames[1],
-                                    AttributeUtil.getAttributeValueFromString(attributeEntry.getValue(),
-                                            subAttributeSchema.getType()));
-                    DefaultAttributeFactory.createAttribute(subAttributeSchema, simpleAttribute);
-                    //check whether parent attribute exists.
-                    if (((AbstractSCIMObject) scimObject).isAttributeExist(parentAttributeName)) {
-                        ComplexAttribute complexAttribute =
-                                (ComplexAttribute) scimObject.getAttribute(parentAttributeName);
-                        complexAttribute.setSubAttribute(simpleAttribute);
+
+                    boolean isComplexMultivaluedSupportEnabled = Boolean.parseBoolean(IdentityUtil.getProperty
+                            (SCIM_COMPLEX_MULTIVALUED_ATTRIBUTE_SUPPORT_ENABLED));
+                    if (parentAttributeName != null && parentAttributeName.contains("#") &&
+                            isComplexMultivaluedSupportEnabled) {
+                        //multivalued complex value (advanced complex value)
+                        String[] parentAttributeNames = parentAttributeName.split("#");
+                        parentAttributeName = parentAttributeNames[0];
+                        parentAttributeSchema = getAttributeSchema(parentAttributeName, scimObjectType);
+
+
+                        String type = parentAttributeNames[1];
+                        String attributeName = attributeNames[1];
+
+                        Map<String, Object> complexValue = new HashMap<>();
+                        complexValue.put(SCIMConstants.CommonSchemaConstants.TYPE, type);
+
+                        //sub attribute of a complex attribute
+                        AttributeSchema subAttributeSchema = getAttributeSchema(attributeName, scimObjectType);
+                        complexValue.put(attributeName, AttributeUtil.getAttributeValueFromString(attributeEntry
+                                .getValue(), subAttributeSchema.getType()));
+
+
+
+
+                        //we assume sub attribute is simple attribute
+                        SimpleAttribute simpleAttribute = new SimpleAttribute(attributeName,
+                                AttributeUtil.getAttributeValueFromString(attributeEntry.getValue(),
+                                        subAttributeSchema.getType()));
+                        simpleAttribute = (SimpleAttribute) DefaultAttributeFactory.createAttribute
+                                (subAttributeSchema, simpleAttribute);
+
+                        //check whether parent attribute exists.
+                        MultiValuedAttribute multiValuedAttribute;
+                        if (((AbstractSCIMObject) scimObject).isAttributeExist(parentAttributeName)) {
+                            multiValuedAttribute = (MultiValuedAttribute) scimObject.getAttribute(parentAttributeName);
+
+
+                            boolean isAttributeExists = false;
+                            List<Attribute> subAttributeList = multiValuedAttribute.getValuesAsSubAttributes();
+                            for (Attribute subAttribute : subAttributeList) {
+
+                                if (subAttribute instanceof ComplexAttribute) {
+                                    ComplexAttribute complexSubAttribute = (ComplexAttribute) subAttribute;
+
+                                    String currentType = getStringValueOfSubAttribute(complexSubAttribute,
+                                            SCIMConstants.CommonSchemaConstants.TYPE);
+
+                                    if (type.equals(currentType)) {
+                                        complexSubAttribute.setSubAttribute(simpleAttribute);
+                                        isAttributeExists = true;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (!isAttributeExists) {
+                                //create the attribute and set it in the scim object
+                                Map<String, Attribute> subAttributesMap = new HashMap<>();
+                                subAttributesMap.put(simpleAttribute.getName(), simpleAttribute);
+
+                                SimpleAttribute typeAttribute = new SimpleAttribute("type", type);
+                                typeAttribute = (SimpleAttribute)DefaultAttributeFactory.createAttribute
+                                        (SCIMSchemaDefinitions.TYPE, typeAttribute);
+                                subAttributesMap.put(typeAttribute.getName(), typeAttribute);
+
+                                multiValuedAttribute.setComplexValueWithSetOfSubAttributes(subAttributesMap);
+                            }
+                        } else {
+                            //create the attribute and set it in the scim object
+                            multiValuedAttribute = new MultiValuedAttribute(parentAttributeName);
+
+                            //create the attribute and set it in the scim object
+                            Map<String, Attribute> subAttributesMap = new HashMap<>();
+                            subAttributesMap.put(simpleAttribute.getName(), simpleAttribute);
+
+                            SimpleAttribute typeAttribute = new SimpleAttribute("type", type);
+                            typeAttribute = (SimpleAttribute)DefaultAttributeFactory.createAttribute
+                                    (SCIMSchemaDefinitions.TYPE, typeAttribute);
+                            subAttributesMap.put(typeAttribute.getName(), typeAttribute);
+
+
+                            multiValuedAttribute.setComplexValueWithSetOfSubAttributes(subAttributesMap);
+                            multiValuedAttribute = (MultiValuedAttribute) DefaultAttributeFactory.createAttribute
+                                    (parentAttributeSchema, multiValuedAttribute);
+                            ((AbstractSCIMObject) scimObject).setAttribute(multiValuedAttribute);
+                        }
+
+
                     } else {
-                        //create parent attribute and set sub attribute
-                        ComplexAttribute complexAttribute = new ComplexAttribute(parentAttributeName);
-                        complexAttribute.setSubAttribute(simpleAttribute);
-                        DefaultAttributeFactory.createAttribute(parentAttributeSchema, complexAttribute);
-                        ((AbstractSCIMObject) scimObject).setAttribute(complexAttribute);
+                        //sub attribute of a complex attribute
+                        AttributeSchema subAttributeSchema = getAttributeSchema(attributeNames[1], scimObjectType);
+                        //we assume sub attribute is simple attribute
+                        SimpleAttribute simpleAttribute =
+                                new SimpleAttribute(attributeNames[1],
+                                        AttributeUtil.getAttributeValueFromString(attributeEntry.getValue(),
+                                                subAttributeSchema.getType()));
+                        DefaultAttributeFactory.createAttribute(subAttributeSchema, simpleAttribute);
+                        //check whether parent attribute exists.
+                        if (((AbstractSCIMObject) scimObject).isAttributeExist(parentAttributeName)) {
+                            ComplexAttribute complexAttribute =
+                                    (ComplexAttribute) scimObject.getAttribute(parentAttributeName);
+                            complexAttribute.setSubAttribute(simpleAttribute);
+                        } else {
+                            //create parent attribute and set sub attribute
+                            ComplexAttribute complexAttribute = new ComplexAttribute(parentAttributeName);
+                            complexAttribute.setSubAttribute(simpleAttribute);
+                            DefaultAttributeFactory.createAttribute(parentAttributeSchema, complexAttribute);
+                            ((AbstractSCIMObject) scimObject).setAttribute(complexAttribute);
+                        }
                     }
 
                 }
