@@ -360,11 +360,6 @@ public class AttributeMapper {
             return;
         }
 
-        boolean isSingularAdvancedComplexMultiValuedAttribute = false;
-        if (subAttributeList.size() == 1) {
-            isSingularAdvancedComplexMultiValuedAttribute = true;
-        }
-
         for (Attribute arrayElementAttribute : subAttributeList) {
 
             if (arrayElementAttribute instanceof ComplexAttribute) {
@@ -382,8 +377,7 @@ public class AttributeMapper {
                     if (value != null) {
                         convertBasicComplexMultiValuedAttributeToClaims(attributeURI, type, value, claimsMap);
                     } else {
-                        convertAdvancedComplexMultiValuedAttributeToClaims(subClaimsMap, attributeURI, type,
-                                claimsMap, isSingularAdvancedComplexMultiValuedAttribute);
+                        convertAdvancedComplexMultiValuedAttributeToClaims(subClaimsMap, attributeURI, type, claimsMap);
                     }
                 } else {
                     // TODO: Should handle this properly as type is not mandatory as per spec
@@ -457,49 +451,66 @@ public class AttributeMapper {
      * @param claimsMap
      */
     private static void convertAdvancedComplexMultiValuedAttributeToClaims(Map<String, String> subClaimsMap, String
-            attributeURI, String type, Map<String, String> claimsMap, boolean
-            isSingularAdvancedComplexMultiValuedAttribute) {
+            attributeURI, String type, Map<String, String> claimsMap) {
 
         boolean isComplexMultivaluedSupportEnabled = Boolean.parseBoolean(IdentityUtil.getProperty
                 (SCIM_COMPLEX_MULTIVALUED_ATTRIBUTE_SUPPORT_ENABLED));
 
-        if (!isSingularAdvancedComplexMultiValuedAttribute && isComplexMultivaluedSupportEnabled) {
+        if (log.isDebugEnabled()) {
+            log.debug("isComplexMultivaluedSupportEnabled: " + isComplexMultivaluedSupportEnabled);
+        }
+
+        if (isComplexMultivaluedSupportEnabled) {
 
             Map<String, String> modifiedSubClaimsMap = new HashMap<>();
 
             for (Map.Entry<String, String> entry : subClaimsMap.entrySet()) {
                 String subAttributeURI = entry.getKey();
+                String subAttributeValue = entry.getValue();
 
-                if (subAttributeURI == null) {
-                    if (type.equals(entry.getValue())) {
+
+                if (StringUtils.isEmpty(subAttributeURI)) {
+                    if (type.equals(subAttributeValue)) {
 
                         if (log.isDebugEnabled()) {
                             log.debug("Skip adding type attribute as a claim for complex attributeURI: " +
                                     attributeURI + " with type: " + type);
                         }
-                        continue;
                     } else {
                         if (log.isDebugEnabled()) {
-                            log.debug("subAttributeURI cannot be null for sub attribute with value: " + entry.getValue()
-                                    + " in complex attributeURI: " + attributeURI);
+                            log.debug("subAttributeURI cannot be null for sub attribute with value: " +
+                                    subAttributeValue + " in complex attributeURI: " + attributeURI);
                         }
                     }
-                }
+                } else {
+                    String modifiedSubAttributeURI = subAttributeURI.replace(attributeURI, attributeURI + "#" + type);
+                    modifiedSubClaimsMap.put(modifiedSubAttributeURI, subAttributeValue);
 
-                String modifiedSubAttributeURI = subAttributeURI.replace(attributeURI, attributeURI + "#" + type);
-                modifiedSubClaimsMap.put(modifiedSubAttributeURI, entry.getValue());
-
-                if (log.isDebugEnabled()) {
-                    String debugMessage = "Modifying the claim uri from: " + attributeURI + " to: " +
-                            modifiedSubAttributeURI;
-                    if (IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.USER_CLAIMS)) {
-                        debugMessage += " for value: " + entry.getValue();
+                    if (log.isDebugEnabled()) {
+                        String debugMessage = "Modifying the claim uri from: " + attributeURI + " to: " +
+                                modifiedSubAttributeURI;
+                        if (IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.USER_CLAIMS)) {
+                            debugMessage += " for value: " + subAttributeValue;
+                        }
+                        log.debug(debugMessage);
                     }
-                    log.debug(debugMessage);
                 }
             }
 
             claimsMap.putAll(modifiedSubClaimsMap);
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Continuing with unmodified sub claims map");
+            }
+
+            for (Map.Entry<String, String> entry : subClaimsMap.entrySet()) {
+                String subAttributeURI = entry.getKey();
+                String subAttributeValue = entry.getValue();
+
+                if (StringUtils.isNotEmpty(subAttributeURI)) {
+                    claimsMap.put(subAttributeURI, subAttributeValue);
+                }
+            }
         }
     }
 
