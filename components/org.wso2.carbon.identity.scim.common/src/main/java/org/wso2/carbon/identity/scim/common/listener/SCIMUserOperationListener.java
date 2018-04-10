@@ -21,11 +21,15 @@ package org.wso2.carbon.identity.scim.common.listener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
+import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
+import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.scim.common.group.SCIMGroupHandler;
 import org.wso2.carbon.identity.scim.common.utils.IdentitySCIMException;
+import org.wso2.carbon.identity.scim.common.utils.SCIMCommonConstants;
 import org.wso2.carbon.identity.scim.common.utils.SCIMCommonUtils;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -446,13 +450,19 @@ public class SCIMUserOperationListener extends AbstractIdentityUserOperationEven
         return true;
     }
 
-    public Map<String, String> getSCIMAttributes(String userName, Map<String, String> claimsMap) {
+    public Map<String, String> getSCIMAttributes(String userName, Map<String, String> claimsMap) throws UserStoreException {
         Map<String, String> attributes = null;
         if (claimsMap != null) {
             attributes = claimsMap;
         } else {
             attributes = new HashMap<>();
         }
+
+        Map<String, String> scimToLocalMappings = SCIMCommonUtils.getSCIMtoLocalMappings();
+        String userIdLocalClaimUri = scimToLocalMappings.get(SCIMConstants.ID_URI);
+        String createdLocalClaimUri = scimToLocalMappings.get(SCIMConstants.META_CREATED_URI);
+        String modifiedLocalClaimUri = scimToLocalMappings.get(SCIMConstants.META_LAST_MODIFIED_URI);
+        String usernameLocalClaimUri = scimToLocalMappings.get(SCIMConstants.USER_NAME_URI);
 
         Pattern pattern = Pattern.compile("urn:.*scim:schemas:core:.\\.0:id");
         boolean containsScimIdClaim = false;
@@ -461,24 +471,28 @@ public class SCIMUserOperationListener extends AbstractIdentityUserOperationEven
                 containsScimIdClaim = true;
                 break;
             }
+            if (StringUtils.equals(claimUri, userIdLocalClaimUri)) {
+                containsScimIdClaim = true;
+                break;
+            }
         }
         if (!containsScimIdClaim) {
             String id = UUID.randomUUID().toString();
-            attributes.put(SCIMConstants.ID_URI, id);
+            attributes.put(userIdLocalClaimUri, id);
         }
 
         Date date = new Date();
         String createdDate = AttributeUtil.formatDateTime(date);
 
-        if (!attributes.containsKey(SCIMConstants.META_CREATED_URI)) {
-            attributes.put(SCIMConstants.META_CREATED_URI, createdDate);
+        if (!attributes.containsKey(SCIMConstants.META_CREATED_URI) || !attributes.containsKey(createdLocalClaimUri)) {
+            attributes.put(createdLocalClaimUri, createdDate);
         }
 
-        if (!attributes.containsKey(SCIMConstants.META_LAST_MODIFIED_URI)) {
-            attributes.put(SCIMConstants.META_LAST_MODIFIED_URI, createdDate);
+        if (!attributes.containsKey(SCIMConstants.META_LAST_MODIFIED_URI) || !attributes.containsKey(modifiedLocalClaimUri)) {
+            attributes.put(modifiedLocalClaimUri, createdDate);
         }
 
-        attributes.put(SCIMConstants.USER_NAME_URI, userName);
+        attributes.put(usernameLocalClaimUri, userName);
 
         return attributes;
         //TODO: add other optional attributes like location etc.
