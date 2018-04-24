@@ -365,7 +365,7 @@ public class SCIMCommonUtils {
         } catch (ClaimMetadataException e) {
             throw new UserStoreException(
                     "Error occurred while retrieving SCIM to Local claim mappings for tenant domain : " +
-                            spTenantDomain + ", " + e.getMessage(), e);
+                            spTenantDomain , e);
         }
     }
 
