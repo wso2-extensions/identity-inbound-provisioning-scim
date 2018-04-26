@@ -376,8 +376,16 @@ public class SCIMCommonUtils {
      */
     private static String getTenantDomainFromSP() {
 
+        String tenantDomain;
         ThreadLocalProvisioningServiceProvider threadLocalSP = IdentityApplicationManagementUtil
                 .getThreadLocalProvisioningServiceProvider();
-        return threadLocalSP.getTenantDomain();
+        if (threadLocalSP != null) {
+            return threadLocalSP.getTenantDomain();
+        } else if (PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain() != null) {
+            tenantDomain = PrivilegedCarbonContext.getThreadLocalCarbonContext().getTenantDomain();
+        } else {
+            tenantDomain = MultitenantConstants.SUPER_TENANT_DOMAIN_NAME;
+        }
+        return tenantDomain;
     }
 }
