@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
+<?xml version="1.0" encoding="UTF-8"?><!--
  ~ Copyright (c) 2010, WSO2 Inc. (http://www.wso2.org) All Rights Reserved.
  ~
  ~ WSO2 Inc. licenses this file to you under the Apache License,
@@ -14,21 +13,17 @@
  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  ~ See the License for the specific language governing permissions and
  ~ limitations under the License.
-  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+  --><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.wso2.carbon.identity.inbound.provisioning.scim</groupId>
         <artifactId>identity-inbound-provisioning-scim</artifactId>
         <relativePath>../../pom.xml</relativePath>
         <version>5.3.26-SNAPSHOT</version>
     </parent>
-
     <modelVersion>4.0.0</modelVersion>
     <artifactId>org.wso2.carbon.identity.scim.common</artifactId>
     <name>WSO2 Carbon - SCIM - Common Component</name>
     <packaging>bundle</packaging>
-
     <dependencies>
         <dependency>
             <groupId>commons-collections.wso2</groupId>
@@ -94,7 +89,6 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -109,7 +103,6 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
-
                 <executions>
                     <execution>
                         <id>generate-scr-scrdescriptor</id>
@@ -164,7 +157,39 @@
                     </instructions>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+	        <executions>
+		    <execution>
+			    <id>default-check-by-coverage-enforcer</id>
+			    <goals>
+			        <goal>check</goal>
+			    </goals>
+			    <configuration>
+			        <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+			        <rules>
+				    <!-- implementation is needed only for Maven 2 -->
+				    <rule implementation="org.jacoco.maven.RuleConfiguration">
+				        <element>BUNDLE</element>
+				        <limits>
+					    <!-- implementation is needed only for Maven 2 -->
+					    <limit implementation="org.jacoco.report.check.Limit">
+					        <counter>LINE</counter>
+					        <value>COVEREDRATIO</value>
+					        <minimum>0.0</minimum>
+					    </limit>
+				        </limits>
+				    </rule>
+			        </rules>
+			    </configuration>
+		        </execution>
+		</executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
         </plugins>
     </build>
-
 </project>
