@@ -24,16 +24,16 @@
     <artifactId>identity-inbound-provisioning-scim</artifactId>
     <packaging>pom</packaging>
     <modelVersion>4.0.0</modelVersion>
-    <version>5.3.26-SNAPSHOT</version>
+    <version>5.3.26</version>
     <name>WSO2 Carbon - SCIM Provisioning Module</name>
-    <description/>
+    <description />
     <url>http://wso2.org</url>
     <scm>
         <url>https://github.com/wso2-extensions/identity-inbound-provisioning-scim.git</url>
         <developerConnection>scm:git:https://github.com/wso2-extensions/identity-inbound-provisioning-scim.git
         </developerConnection>
         <connection>scm:git:https://github.com/wso2-extensions/identity-inbound-provisioning-scim.git</connection>
-        <tag>HEAD</tag>
+        <tag>v5.3.26</tag>
     </scm>
     <dependencyManagement>
         <dependencies>
