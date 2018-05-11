@@ -518,9 +518,14 @@ public class SCIMUserManager implements UserManager {
                     carbonUM.updateCredentialByAdmin(newUser.getUserName(), newUser.getPassword());
                 }
                 log.info("User: " + newUser.getUserName() + " updated updated through SCIM.");
-            } catch (org.wso2.carbon.user.core.UserStoreException e) {
-                throw new CharonException("Error while updating attributes of user: " + newUser.getUserName(), e);
+        } catch (org.wso2.carbon.user.core.UserStoreException e) {
+            String message = "Error while updating attributes of user: " + newUser.getUserName() + ". ";
+            if (StringUtils.isNotBlank(e.getMessage())) {
+                throw new CharonException(message + e.getMessage(), e);
+            } else {
+                throw new CharonException(message, e);
             }
+        }
 
             return newUser;
     }
