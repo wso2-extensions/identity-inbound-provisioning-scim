@@ -292,6 +292,14 @@ public class SCIMUserOperationListener extends AbstractIdentityUserOperationEven
     }
 
     @Override
+    public boolean doPostAddInternalRole(String roleName, String[] userList,
+                                         org.wso2.carbon.user.api.Permission[] permissions,
+                                         UserStoreManager userStoreManager) throws UserStoreException {
+
+        return doPostAddRole(roleName, userList, permissions, userStoreManager);
+    }
+
+    @Override
     public boolean doPostAddRole(String roleName, String[] userList,
                                  org.wso2.carbon.user.api.Permission[] permissions,
                                  UserStoreManager userStoreManager) throws UserStoreException {
@@ -342,6 +350,13 @@ public class SCIMUserOperationListener extends AbstractIdentityUserOperationEven
     }
 
     @Override
+    public boolean doPostDeleteInternalRole(String roleName, UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        return doPostDeleteRole(roleName, userStoreManager);
+    }
+
+    @Override
     public boolean doPostDeleteRole(String roleName, UserStoreManager userStoreManager)
             throws UserStoreException {
         try {
@@ -379,6 +394,14 @@ public class SCIMUserOperationListener extends AbstractIdentityUserOperationEven
     public boolean doPreUpdateRoleName(String s, String s1, UserStoreManager userStoreManager)
             throws UserStoreException {
         return true;
+    }
+
+    @Override
+    public boolean doPostUpdateInternalRoleName(String roleName, String newRoleName,
+                                        UserStoreManager userStoreManager)
+            throws UserStoreException {
+
+        return doPostUpdateRoleName(roleName, newRoleName, userStoreManager);
     }
 
     @Override
