@@ -482,7 +482,7 @@ public class SCIMUserManager implements UserManager {
                     }
                     if (getUserStoreDomainFromSP() != null &&
                         !UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME.equalsIgnoreCase(getUserStoreDomainFromSP())) {
-                        user.setUserName(UserCoreUtil
+                        user.setUserName(IdentityUtil
                                                  .addDomainToName(UserCoreUtil.removeDomainFromName(user.getUserName()),
                                                                   getUserStoreDomainFromSP()));
                     }
@@ -584,7 +584,7 @@ public class SCIMUserManager implements UserManager {
                     !(IdentityUtil.extractDomainFromName(oldUser.getUserName())
                                   .equals(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME))) {
                     newUser.setUserName(
-                            UserCoreUtil.addDomainToName(newUser.getUserName(),
+                            IdentityUtil.addDomainToName(newUser.getUserName(),
                                     IdentityUtil.extractDomainFromName(oldUser.getUserName())));
                 }
 
@@ -730,11 +730,11 @@ public class SCIMUserManager implements UserManager {
                 try {
                     if (getUserStoreDomainFromSP() != null) {
                         domainName = getUserStoreDomainFromSP();
-                        roleNameWithDomain = UserCoreUtil
+                        roleNameWithDomain = IdentityUtil
                                 .addDomainToName(UserCoreUtil.removeDomainFromName(originalName), domainName);
                     } else if (originalName.indexOf(CarbonConstants.DOMAIN_SEPARATOR) > 0) {
                         domainName = IdentityUtil.extractDomainFromName(originalName);
-                        roleNameWithDomain = UserCoreUtil
+                        roleNameWithDomain = IdentityUtil
                                 .addDomainToName(UserCoreUtil.removeDomainFromName(originalName), domainName);
                     } else {
                         domainName = UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME;
@@ -1001,9 +1001,9 @@ public class SCIMUserManager implements UserManager {
             throw new CharonException("Error retrieving User Store name. ", e);
         }
 
-        oldGroup.setDisplayName(UserCoreUtil.addDomainToName(UserCoreUtil.removeDomainFromName(oldGroup.getDisplayName()),
+        oldGroup.setDisplayName(IdentityUtil.addDomainToName(UserCoreUtil.removeDomainFromName(oldGroup.getDisplayName()),
                 IdentityUtil.extractDomainFromName(oldGroup.getDisplayName())));
-        newGroup.setDisplayName(UserCoreUtil.addDomainToName(UserCoreUtil.removeDomainFromName(newGroup.getDisplayName()),
+        newGroup.setDisplayName(IdentityUtil.addDomainToName(UserCoreUtil.removeDomainFromName(newGroup.getDisplayName()),
                 IdentityUtil.extractDomainFromName(newGroup.getDisplayName())));
 
             try {
@@ -1012,7 +1012,7 @@ public class SCIMUserManager implements UserManager {
                         .extractDomainFromName(oldGroup.getDisplayName())
                         .equals(primaryDomain))) {
                     String userStoreDomain = IdentityUtil.extractDomainFromName(oldGroup.getDisplayName());
-                    newGroup.setDisplayName(UserCoreUtil.addDomainToName(newGroup.getDisplayName(), userStoreDomain));
+                    newGroup.setDisplayName(IdentityUtil.addDomainToName(newGroup.getDisplayName(), userStoreDomain));
 
                 } else if (!IdentityUtil.extractDomainFromName(oldGroup.getDisplayName())
                         .equals(IdentityUtil.extractDomainFromName(newGroup.getDisplayName()))) {
@@ -1067,7 +1067,7 @@ public class SCIMUserManager implements UserManager {
                     String[] userNames = null;
                     for (String userId : userIds) {
                         userNames = carbonUM.getUserList(SCIMConstants.ID_URI,
-                                UserCoreUtil.addDomainToName(userId, userStoreDomainForGroup),
+                                IdentityUtil.addDomainToName(userId, userStoreDomainForGroup),
                                 UserCoreConstants.DEFAULT_PROFILE);
                         if (userNames == null || userNames.length == 0) {
                             String error = "User: " + userId + " doesn't exist in the user store. " +
@@ -1196,9 +1196,9 @@ public class SCIMUserManager implements UserManager {
             throw new CharonException("Error retrieving User Store name. ", e);
         }
 
-        oldGroup.setDisplayName(UserCoreUtil.addDomainToName(UserCoreUtil.removeDomainFromName(oldGroup.getDisplayName()),
+        oldGroup.setDisplayName(IdentityUtil.addDomainToName(UserCoreUtil.removeDomainFromName(oldGroup.getDisplayName()),
                 IdentityUtil.extractDomainFromName(oldGroup.getDisplayName())));
-        newGroup.setDisplayName(UserCoreUtil.addDomainToName(UserCoreUtil.removeDomainFromName(newGroup.getDisplayName()),
+        newGroup.setDisplayName(IdentityUtil.addDomainToName(UserCoreUtil.removeDomainFromName(newGroup.getDisplayName()),
                 IdentityUtil.extractDomainFromName(newGroup.getDisplayName())));
 
 
@@ -1240,7 +1240,7 @@ public class SCIMUserManager implements UserManager {
                                 .equals(primaryDomain))) {
                     String userStoreDomain = IdentityUtil.extractDomainFromName(oldGroup.getDisplayName());
                     newGroup.setDisplayName(
-                            UserCoreUtil.addDomainToName(newGroup.getDisplayName(), userStoreDomain));
+                            IdentityUtil.addDomainToName(newGroup.getDisplayName(), userStoreDomain));
                 } else if (!IdentityUtil.extractDomainFromName(oldGroup.getDisplayName())
                         .equals(IdentityUtil.extractDomainFromName(newGroup.getDisplayName()))) {
                     throw new IdentitySCIMException(
@@ -1749,7 +1749,7 @@ public class SCIMUserManager implements UserManager {
                     String displayName =
                             AttributeUtil.getStringValueOfAttribute(displayNameAttribute.getValue(),
                                     displayNameAttribute.getDataType());
-                    displayNameAttribute.setValue(UserCoreUtil.addDomainToName(
+                    displayNameAttribute.setValue(IdentityUtil.addDomainToName(
                             UserCoreUtil.removeDomainFromName(displayName), userStoreDomain));
                 }
             }
