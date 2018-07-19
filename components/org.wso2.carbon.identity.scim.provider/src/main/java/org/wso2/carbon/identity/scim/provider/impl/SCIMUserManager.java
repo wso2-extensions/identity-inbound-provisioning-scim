@@ -396,7 +396,17 @@ public class SCIMUserManager implements UserManager {
                         continue;
                     }
 
-                    scimUser = this.getSCIMUserWithoutRoles(userName, new ArrayList<String>());
+                    List<String> claimURIList = new ArrayList<>();
+                    if (Boolean.parseBoolean(IdentityUtil.getProperty(SCIMProviderConstants
+                            .ELEMENT_NAME_SHOW_ALL_USER_DETAILS))) {
+                        // Get claims related to SCIM claim dialect.
+                        ClaimMapping[] claims = carbonClaimManager.
+                                getAllClaimMappings(SCIMCommonConstants.SCIM_CLAIM_DIALECT);
+                        for (ClaimMapping claim : claims) {
+                            claimURIList.add(claim.getClaim().getClaimUri());
+                        }
+                    }
+                    scimUser = this.getSCIMUserWithoutRoles(userName, claimURIList);
                     //if SCIM-ID is not present in the attributes, skip
                     if (scimUser != null && StringUtils.isBlank(scimUser.getId())) {
                         continue;
