@@ -21,15 +21,11 @@ package org.wso2.carbon.identity.scim.common.listener;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
-import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
-import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.scim.common.group.SCIMGroupHandler;
 import org.wso2.carbon.identity.scim.common.utils.IdentitySCIMException;
-import org.wso2.carbon.identity.scim.common.utils.SCIMCommonConstants;
 import org.wso2.carbon.identity.scim.common.utils.SCIMCommonUtils;
 import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
@@ -236,7 +232,7 @@ public class SCIMUserOperationListener extends AbstractIdentityUserOperationEven
                                            String profileName, UserStoreManager userStoreManager)
             throws UserStoreException {
         try {
-            if (!isEnable() || !userStoreManager.isSCIMEnabled()) {
+            if (!isEnable() || !userStoreManager.isSCIMEnabled() || userStoreManager.isReadOnly()) {
                 return true;
             }
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
