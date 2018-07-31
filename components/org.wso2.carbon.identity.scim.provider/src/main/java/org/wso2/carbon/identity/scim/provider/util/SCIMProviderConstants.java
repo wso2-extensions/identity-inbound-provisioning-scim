@@ -52,6 +52,8 @@ public class SCIMProviderConstants {
     public static final String DISPLAY_NAME = "displayName";
     public static final String WILDCARD_ASTERISK = "*";
 
+    public static final String ELEMENT_NAME_SHOW_ALL_USER_DETAILS = "ShowAllUserDetails";
+
     private SCIMProviderConstants(){}
 
 }
