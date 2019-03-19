@@ -65,7 +65,8 @@ public class AuthenticationFilter implements ContainerRequestFilter, ContainerRe
     }
 
     @Override
-    public void filter(ContainerRequestContext containerRequestContext, ContainerResponseContext containerResponseContext) throws IOException {
+    public void filter(ContainerRequestContext containerRequestContext,
+                       ContainerResponseContext containerResponseContext) throws IOException {
         IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
     }
 }
