@@ -18,11 +18,9 @@
 
 package org.wso2.carbon.identity.scim.provider.auth;
 
-import org.apache.cxf.jaxrs.model.ClassResourceInfo;
-import org.apache.cxf.message.Message;
-
 import java.util.Map;
 import java.util.TreeMap;
+import javax.ws.rs.container.ContainerRequestContext;
 
 /**
  * This stores the authenticators registered for SCIM REST endpoints and returns the appropriate
@@ -53,15 +51,13 @@ public class SCIMAuthenticatorRegistry {
      * Given the RESTful message and other info, returns the authenticator which can handle the request.
      *
      * @param message
-     * @param classResourceInfo
      * @return
      */
-    public SCIMAuthenticationHandler getAuthenticator(Message message,
-                                                      ClassResourceInfo classResourceInfo) {
+    public SCIMAuthenticationHandler getAuthenticator(ContainerRequestContext message) {
         //since we use a tree map to store authenticators, they are ordered based on the priority.
         //therefore, we iterate over the authenticators and check the can handle method
         for (SCIMAuthenticationHandler scimAuthenticationHandler : SCIMAuthHandlers.values()) {
-            if (scimAuthenticationHandler.canHandle(message, classResourceInfo)) {
+            if (scimAuthenticationHandler.canHandle(message)) {
                 return scimAuthenticationHandler;
             }
         }
