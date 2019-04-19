@@ -248,7 +248,7 @@
         <module>features/org.wso2.carbon.identity.scim.ui.feature</module>
     </modules>
     <properties>
-        <charon.wso2.version.identity>2.1.5</charon.wso2.version.identity>
+        <charon.wso2.version.identity>2.1.6</charon.wso2.version.identity>
         <charon.core.imp.pkg.version.range>[2.0.1,3.0.0)</charon.core.imp.pkg.version.range>
         <javax.ws.rs-api.version>2.1.1</javax.ws.rs-api.version>
         <cxf-bundle.version>3.2.8</cxf-bundle.version>
