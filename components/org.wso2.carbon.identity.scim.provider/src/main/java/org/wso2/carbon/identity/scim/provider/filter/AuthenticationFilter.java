@@ -20,11 +20,6 @@ package org.wso2.carbon.identity.scim.provider.filter;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.cxf.jaxrs.ext.RequestHandler;
-import org.apache.cxf.jaxrs.ext.ResponseHandler;
-import org.apache.cxf.jaxrs.model.ClassResourceInfo;
-import org.apache.cxf.jaxrs.model.OperationResourceInfo;
-import org.apache.cxf.message.Message;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.scim.provider.auth.SCIMAuthenticationHandler;
 import org.wso2.carbon.identity.scim.provider.auth.SCIMAuthenticatorRegistry;
@@ -33,15 +28,18 @@ import org.wso2.charon.core.encoder.json.JSONEncoder;
 import org.wso2.charon.core.exceptions.UnauthorizedException;
 import org.wso2.charon.core.protocol.endpoints.AbstractResourceEndpoint;
 
-import javax.ws.rs.core.Response;
+import java.io.IOException;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
 
-public class AuthenticationFilter implements RequestHandler, ResponseHandler {
+public class AuthenticationFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
     private static Log log = LogFactory.getLog(AuthenticationFilter.class);
 
     @Override
-    public Response handleRequest(Message message, ClassResourceInfo classResourceInfo) {
-
+    public void filter(ContainerRequestContext containerRequestContext) throws IOException {
         // reset anything set on provisioning thread local.
         IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
 
@@ -50,28 +48,25 @@ public class AuthenticationFilter implements RequestHandler, ResponseHandler {
         }
         SCIMAuthenticatorRegistry SCIMAuthRegistry = SCIMAuthenticatorRegistry.getInstance();
         if (SCIMAuthRegistry != null) {
-            SCIMAuthenticationHandler SCIMAuthHandler = SCIMAuthRegistry.getAuthenticator(
-                    message, classResourceInfo);
+            SCIMAuthenticationHandler SCIMAuthHandler = SCIMAuthRegistry.getAuthenticator(containerRequestContext);
             boolean isAuthenticated = false;
             if (SCIMAuthHandler != null) {
-                isAuthenticated = SCIMAuthHandler.isAuthenticated(message, classResourceInfo);
+                isAuthenticated = SCIMAuthHandler.isAuthenticated(containerRequestContext);
                 if (isAuthenticated) {
-                    return null;
+                    return;
                 }
             }
         }
         //if null response is not returned(i.e:message continues its way to the resource), return error & terminate.
         UnauthorizedException unauthorizedException = new UnauthorizedException(
                 "Authentication failed for this resource.");
-        return new JAXRSResponseBuilder().buildResponse(
-                AbstractResourceEndpoint.encodeSCIMException(new JSONEncoder(), unauthorizedException));
+        containerRequestContext.abortWith(new JAXRSResponseBuilder().buildResponse(
+                AbstractResourceEndpoint.encodeSCIMException(new JSONEncoder(), unauthorizedException)));
     }
 
-    // To clear the ThreadLocalProvisioningServiceProvider in a non faulty case
     @Override
-    public Response handleResponse(Message message, OperationResourceInfo operationResourceInfo, Response response) {
+    public void filter(ContainerRequestContext containerRequestContext,
+                       ContainerResponseContext containerResponseContext) throws IOException {
         IdentityApplicationManagementUtil.resetThreadLocalProvisioningServiceProvider();
-        return null;
     }
-
 }
