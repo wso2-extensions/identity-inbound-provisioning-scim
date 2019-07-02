@@ -1,0 +1,5 @@
+{
+  "scim.passthrough_outbound_provisioning": false,
+  "scim.enable_schema_extension": true,
+  "scim.extensions.provisioning_handler": "org.wso2.carbon.identity.scim.common.impl.DefaultSCIMProvisioningHandler"
+}
