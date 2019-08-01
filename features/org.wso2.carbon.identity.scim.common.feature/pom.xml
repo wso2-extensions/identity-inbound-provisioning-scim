@@ -107,7 +107,7 @@
                                 <bundleDef>org.wso2.carbon.identity.inbound.provisioning.scim:org.wso2.carbon.identity.scim.common</bundleDef>
                             </bundles>
                             <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.version}</importFeatureDef>
+                                <importFeatureDef>org.wso2.carbon.core:compatible:${carbon.kernel.feature.version}</importFeatureDef>
                                 <importFeatureDef>org.wso2.carbon.identity.core.server:compatible:${identity.framework.version}</importFeatureDef>
                             </importFeatures>
                         </configuration>
