@@ -58,7 +58,7 @@ import static org.wso2.carbon.identity.scim.common.utils.SCIMCommonConstants.SCI
  */
 public class AttributeMapper {
 
-    private static Log log = LogFactory.getLog(AttributeMapper.class);
+    private static final Log log = LogFactory.getLog(AttributeMapper.class);
     private static final boolean debug = log.isDebugEnabled();
 
     /**

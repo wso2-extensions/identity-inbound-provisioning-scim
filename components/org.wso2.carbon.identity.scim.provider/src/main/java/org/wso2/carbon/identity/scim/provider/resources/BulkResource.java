@@ -37,7 +37,7 @@ import javax.ws.rs.core.Response;
 
 @Path("/")
 public class BulkResource extends AbstractResource{
-    private static Log logger = LogFactory.getLog(BulkResource.class);
+    private static final Log logger = LogFactory.getLog(BulkResource.class);
 
     @POST
     public Response createUser(@HeaderParam(SCIMConstants.CONTENT_TYPE_HEADER) String inputFormat,

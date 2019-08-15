@@ -56,7 +56,7 @@ public class SCIMCommonUtils {
     private static String scimGroupLocation;
     private static String scimUserLocation;
 
-    private static Log log = LogFactory.getLog(SCIMCommonUtils.class);
+    private static final Log log = LogFactory.getLog(SCIMCommonUtils.class);
 
     /**
      * Since we need perform provisioning through UserOperationEventListeenr implementation -

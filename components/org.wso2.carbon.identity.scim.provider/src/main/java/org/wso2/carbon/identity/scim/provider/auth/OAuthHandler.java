@@ -42,7 +42,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 
 public class OAuthHandler implements SCIMAuthenticationHandler {
 
-    private static Log log = LogFactory.getLog(BasicAuthHandler.class);
+    private static final Log log = LogFactory.getLog(BasicAuthHandler.class);
     /* constants specific to this authenticator */
     private static final String BEARER_AUTH_HEADER = "Bearer";
     private static final String LOCAL_PREFIX = "local";

@@ -36,7 +36,7 @@ import javax.ws.rs.container.ContainerResponseFilter;
 
 public class AuthenticationFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
-    private static Log log = LogFactory.getLog(AuthenticationFilter.class);
+    private static final Log log = LogFactory.getLog(AuthenticationFilter.class);
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) throws IOException {

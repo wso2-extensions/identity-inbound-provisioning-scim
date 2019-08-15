@@ -35,7 +35,7 @@ import java.util.Map;
 
 public class SCIMAuthConfigReader {
 
-    private static Log logger = LogFactory.getLog(SCIMAuthConfigReader.class);
+    private static final Log logger = LogFactory.getLog(SCIMAuthConfigReader.class);
 
     public List<SCIMAuthenticationHandler> buildSCIMAuthenticators() {
 
