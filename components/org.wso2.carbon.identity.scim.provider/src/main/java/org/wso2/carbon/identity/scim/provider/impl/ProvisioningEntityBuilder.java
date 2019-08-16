@@ -44,7 +44,7 @@ import java.util.Map;
 public final class ProvisioningEntityBuilder {
 
     private static volatile ProvisioningEntityBuilder provisioningEntityBuilder = null;
-    private static Log log = LogFactory.getLog(ProvisioningEntityBuilder.class);
+    private static final Log log = LogFactory.getLog(ProvisioningEntityBuilder.class);
 
     public static ProvisioningEntityBuilder getInstance() {
         if (provisioningEntityBuilder == null) {

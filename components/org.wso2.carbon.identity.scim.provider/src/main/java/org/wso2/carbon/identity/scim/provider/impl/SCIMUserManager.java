@@ -81,7 +81,7 @@ public class SCIMUserManager implements UserManager {
     public static final String SCIM_ENABLED =  "SCIMEnabled";
     public static final String APPLICATION_DOMAIN = "Application";
     public static final String INTERNAL_DOMAIN = "Internal";
-    private static Log log = LogFactory.getLog(SCIMUserManager.class);
+    private static final Log log = LogFactory.getLog(SCIMUserManager.class);
     private UserStoreManager carbonUM = null;
     private ClaimManager carbonClaimManager = null;
     private String consumerName;

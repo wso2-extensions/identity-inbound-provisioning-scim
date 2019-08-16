@@ -50,7 +50,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
          immediate = true)
 public class SCIMCommonComponent {
 
-    private static Log logger = LogFactory.getLog(SCIMCommonComponent.class);
+    private static final Log logger = LogFactory.getLog(SCIMCommonComponent.class);
 
     ExecutorService executorService = Executors.newFixedThreadPool(1);
 

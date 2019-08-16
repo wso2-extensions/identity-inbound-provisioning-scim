@@ -46,7 +46,7 @@ import javax.ws.rs.container.ContainerRequestContext;
  */
 public class BasicAuthHandler implements SCIMAuthenticationHandler {
 
-    private static Log log = LogFactory.getLog(BasicAuthHandler.class);
+    private static final Log log = LogFactory.getLog(BasicAuthHandler.class);
     /* constants specific to this authenticator */
     private final String BASIC_AUTH_HEADER = "Basic";
     private final int DEFAULT_PRIORITY = 5;

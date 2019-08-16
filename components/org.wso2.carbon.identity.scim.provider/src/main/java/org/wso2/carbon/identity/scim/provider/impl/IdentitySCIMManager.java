@@ -53,7 +53,7 @@ import java.util.Map;
 public class IdentitySCIMManager implements CharonManager {
     private static final String INSTANCE = "instance";
     //private TenantManager tenantManager;
-    private static Log log = LogFactory.getLog(IdentitySCIMManager.class);
+    private static final Log log = LogFactory.getLog(IdentitySCIMManager.class);
     private static volatile IdentitySCIMManager identitySCIMManager;
     private static Map<String, Encoder> encoderMap = new HashMap<String, Encoder>();
     private static Map<String, Decoder> decoderMap = new HashMap<String, Decoder>();

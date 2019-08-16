@@ -57,7 +57,7 @@ import java.util.Map;
  */
 public class ProvisioningClient implements Runnable {
 
-    private static Log logger = LogFactory.getLog(ProvisioningClient.class.getName());
+    private static final Log logger = LogFactory.getLog(ProvisioningClient.class.getName());
     private final String USER_FILTER = "filter=userName%20Eq%20";
     private final String GROUP_FILTER = "filter=displayName%20Eq%20";
     SCIMObject scimObject;

@@ -32,7 +32,7 @@ import org.wso2.charon.core.schema.SCIMConstants;
 import javax.ws.rs.core.Response;
 
 public class AbstractResource {
-    private static Log logger = LogFactory.getLog(AbstractResource.class);
+    private static final Log logger = LogFactory.getLog(AbstractResource.class);
     private Encoder defaultEncoder = new JSONEncoder();
 
     public String identifyOutputFormat(String format) {
