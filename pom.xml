@@ -265,10 +265,10 @@
         <maven.bundle.plugin.version>3.2.0</maven.bundle.plugin.version>
         <maven.buildnumber.plugin.version>1.4</maven.buildnumber.plugin.version>
         <!-- Axis2 Version -->
-        <axis2.wso2.version>1.6.1-wso2v37</axis2.wso2.version>
+        <axis2.wso2.version>1.6.1-wso2v38</axis2.wso2.version>
         <axiom.wso2.version>1.2.11-wso2v16</axiom.wso2.version>
         <carbon.p2.plugin.version>1.5.3</carbon.p2.plugin.version>
-        <identity.framework.version>5.14.0</identity.framework.version>
+        <identity.framework.version>5.14.67</identity.framework.version>
         <identity.inbound.provisioning.scim.export.version>${project.version}
         </identity.inbound.provisioning.scim.export.version>
         <axiom.osgi.version.range>[1.2.11, 2.0.0)</axiom.osgi.version.range>
