@@ -82,6 +82,7 @@ public class SCIMUserManager implements UserManager {
     public static final String APPLICATION_DOMAIN = "Application";
     public static final String INTERNAL_DOMAIN = "Internal";
     private static final Log log = LogFactory.getLog(SCIMUserManager.class);
+    private static final String USER_ID_CLAIM_URI = "http://wso2.org/claims/userid";
     private UserStoreManager carbonUM = null;
     private ClaimManager carbonClaimManager = null;
     private String consumerName;
@@ -183,10 +184,7 @@ public class SCIMUserManager implements UserManager {
                 if (claimsMap.containsKey(SCIMConstants.META_LOCATION_URI)) {
                     claimsMap.remove(SCIMConstants.META_LOCATION_URI);
                 }
-
-                Map<String, String> claimsInLocalDialect = SCIMCommonUtils.convertSCIMtoLocalDialect(claimsMap);
-                carbonUM.addUser(user.getUserName(), user.getPassword(), null, claimsInLocalDialect, null);
-                Map<String, String> clonedClaimsMap = SCIMCommonUtils.convertLocalToSCIMDialect(claimsInLocalDialect);
+                Map<String, String> clonedClaimsMap = addUser(user, claimsMap);
 
                 // The username will modify in the returned map.
                 String modifiedUserName = null;
@@ -232,6 +230,23 @@ public class SCIMUserManager implements UserManager {
 
         return user;
 
+    }
+
+    private Map<String, String> addUser(User user, Map<String, String> claimsMap)
+            throws org.wso2.carbon.user.core.UserStoreException, CharonException {
+
+        // If the userId is generated from the kernel, gives priority to that userID.
+        Map<String, String> claimsInLocalDialect = SCIMCommonUtils.convertSCIMtoLocalDialect(claimsMap);
+        String generatedSCIMId = claimsInLocalDialect.get(USER_ID_CLAIM_URI);
+        claimsInLocalDialect.remove(USER_ID_CLAIM_URI);
+        carbonUM.addUser(user.getUserName(), user.getPassword(), null, claimsInLocalDialect, null);
+        String userIDClaimValue = carbonUM.getUserClaimValue(user.getUserName(), USER_ID_CLAIM_URI, null);
+        if (StringUtils.isEmpty(userIDClaimValue)) {
+            carbonUM.setUserClaimValue(user.getUserName(), USER_ID_CLAIM_URI, generatedSCIMId, null);
+            userIDClaimValue = generatedSCIMId;
+        }
+        claimsInLocalDialect.put(USER_ID_CLAIM_URI, userIDClaimValue);
+        return SCIMCommonUtils.convertLocalToSCIMDialect(claimsInLocalDialect);
     }
 
     @Override
