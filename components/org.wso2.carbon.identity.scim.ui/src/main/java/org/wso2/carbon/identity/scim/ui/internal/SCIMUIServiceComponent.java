@@ -32,7 +32,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
          immediate = true)
 public class SCIMUIServiceComponent {
 
-    private static Log logger = LogFactory.getLog(SCIMUIServiceComponent.class);
+    private static final Log logger = LogFactory.getLog(SCIMUIServiceComponent.class);
 
     @Activate
     protected void activate(ComponentContext ctx) {

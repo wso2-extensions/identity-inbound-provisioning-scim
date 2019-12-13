@@ -23,8 +23,6 @@ import org.apache.axis2.context.ConfigurationContext;
 import org.apache.axis2.context.ConfigurationContextFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.cxf.jaxrs.model.ClassResourceInfo;
-import org.apache.cxf.message.Message;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.ProvisioningServiceProviderType;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
@@ -38,14 +36,13 @@ import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.wso2.charon.core.schema.SCIMConstants;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+import javax.ws.rs.container.ContainerRequestContext;
 
 public class OAuthHandler implements SCIMAuthenticationHandler {
 
-    private static Log log = LogFactory.getLog(BasicAuthHandler.class);
+    private static final Log log = LogFactory.getLog(BasicAuthHandler.class);
     /* constants specific to this authenticator */
     private static final String BEARER_AUTH_HEADER = "Bearer";
     private static final String LOCAL_PREFIX = "local";
@@ -77,14 +74,11 @@ public class OAuthHandler implements SCIMAuthenticationHandler {
         this.remoteServiceURL = LOCAL_AUTH_SERVER;
     }
 
-    public boolean canHandle(Message message, ClassResourceInfo classResourceInfo) {
+    public boolean canHandle(ContainerRequestContext message) {
         // check the "Authorization" header and if "Bearer" is there, can be handled.
 
-        // get the map of protocol headers
-        Map protocolHeaders = (TreeMap) message.get(Message.PROTOCOL_HEADERS);
         // get the value for Authorization Header
-        List authzHeaders = (ArrayList) protocolHeaders
-                .get(SCIMConstants.AUTHORIZATION_HEADER);
+        List authzHeaders = message.getHeaders().get(SCIMConstants.AUTHORIZATION_HEADER);;
         if (authzHeaders != null) {
             // get the authorization header value, if provided
             String authzHeader = (String) authzHeaders.get(0);
@@ -95,12 +89,10 @@ public class OAuthHandler implements SCIMAuthenticationHandler {
         return false;
     }
 
-    public boolean isAuthenticated(Message message, ClassResourceInfo classResourceInfo) {
-        // get the map of protocol headers
-        Map protocolHeaders = (TreeMap) message.get(Message.PROTOCOL_HEADERS);
+    public boolean isAuthenticated(ContainerRequestContext message) {
+
         // get the value for Authorization Header
-        List authzHeaders = (ArrayList) protocolHeaders
-                .get(SCIMConstants.AUTHORIZATION_HEADER);
+        List authzHeaders = message.getHeaders().get(SCIMConstants.AUTHORIZATION_HEADER);;
         if (authzHeaders != null) {
             // get the authorization header value, if provided
             String authzHeader = (String) authzHeaders.get(0);

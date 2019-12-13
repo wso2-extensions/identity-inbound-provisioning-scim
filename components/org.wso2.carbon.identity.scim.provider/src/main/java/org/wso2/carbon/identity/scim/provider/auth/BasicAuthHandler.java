@@ -21,8 +21,6 @@ package org.wso2.carbon.identity.scim.provider.auth;
 import org.apache.axiom.om.util.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.cxf.jaxrs.model.ClassResourceInfo;
-import org.apache.cxf.message.Message;
 import org.wso2.carbon.CarbonConstants;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
@@ -39,17 +37,16 @@ import org.wso2.charon.core.exceptions.UnauthorizedException;
 import org.wso2.charon.core.schema.SCIMConstants;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
+import javax.ws.rs.container.ContainerRequestContext;
 
 /**
  * This is the default BASIC-Auth authentication handler for SCIM REST Endpoints.
  */
 public class BasicAuthHandler implements SCIMAuthenticationHandler {
 
-    private static Log log = LogFactory.getLog(BasicAuthHandler.class);
+    private static final Log log = LogFactory.getLog(BasicAuthHandler.class);
     /* constants specific to this authenticator */
     private final String BASIC_AUTH_HEADER = "Basic";
     private final int DEFAULT_PRIORITY = 5;
@@ -75,14 +72,11 @@ public class BasicAuthHandler implements SCIMAuthenticationHandler {
         this.priority = priority;
     }
 
-    public boolean canHandle(Message message, ClassResourceInfo classResourceInfo) {
+    public boolean canHandle(ContainerRequestContext message) {
         // check the "Authorization" header and if "Basic" is there, can be handled.
 
-        // get the map of protocol headers
-        Map protocolHeaders = (TreeMap) message.get(Message.PROTOCOL_HEADERS);
         // get the value for Authorization Header
-        List authzHeaders = (ArrayList) protocolHeaders
-                .get(SCIMConstants.AUTHORIZATION_HEADER);
+        List authzHeaders = message.getHeaders().get(SCIMConstants.AUTHORIZATION_HEADER);
         if (authzHeaders != null) {
             // get the authorization header value, if provided
             String authzHeader = (String) authzHeaders.get(0);
@@ -93,14 +87,11 @@ public class BasicAuthHandler implements SCIMAuthenticationHandler {
         return false;
     }
 
-    public boolean isAuthenticated(Message message, ClassResourceInfo classResourceInfo) {
+    public boolean isAuthenticated(ContainerRequestContext message) {
         // extract authorization header and authenticate.
 
-        // get the map of protocol headers
-        Map protocolHeaders = (TreeMap) message.get(Message.PROTOCOL_HEADERS);
         // get the value for Authorization Header
-        List authzHeaders = (ArrayList) protocolHeaders
-                .get(SCIMConstants.AUTHORIZATION_HEADER);
+        List authzHeaders = message.getHeaders().get(SCIMConstants.AUTHORIZATION_HEADER);
         if (authzHeaders != null) {
             // get the authorization header value, if provided
             String authzHeader = (String) authzHeaders.get(0);

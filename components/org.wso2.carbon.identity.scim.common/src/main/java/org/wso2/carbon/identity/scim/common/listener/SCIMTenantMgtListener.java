@@ -32,7 +32,7 @@ import org.wso2.carbon.user.core.UserStoreException;
  */
 public class SCIMTenantMgtListener extends AbstractIdentityTenantMgtListener {
 
-    private static Log log = LogFactory.getLog(SCIMTenantMgtListener.class);
+    private static final Log log = LogFactory.getLog(SCIMTenantMgtListener.class);
 
     @Override
     public void onTenantInitialActivation(int tenantId) throws StratosException {
