@@ -1,0 +1,5 @@
+{
+  "provisioning_config.dumb_mode_enable": "provisioning_config.properties.dumb-mode",
+  "provisioning_config.provisioning_handlers": "provisioning_config.properties.provisioning-handlers",
+  "provisioning_config.user_schema_extension_enable": "provisioning_config.properties.user-schema-extension-enabled"
+}
