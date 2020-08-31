@@ -46,6 +46,11 @@
         <jaxrs:providers>
             <ref bean="authenticationFilter"/>
         </jaxrs:providers>
+
+        <jaxrs:properties>
+            <entry key="org.apache.cxf.jaxrs.allow.http.method.override" value="true"/>
+        </jaxrs:properties>
+
     </jaxrs:server>
 
     <bean id="groupBean" class="org.wso2.carbon.identity.scim.provider.resources.GroupResource"/>
