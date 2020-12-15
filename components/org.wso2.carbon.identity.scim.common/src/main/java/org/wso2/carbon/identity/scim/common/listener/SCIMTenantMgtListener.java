@@ -25,7 +25,6 @@ import org.wso2.carbon.identity.scim.common.utils.AdminAttributeUtil;
 import org.wso2.carbon.stratos.common.exception.StratosException;
 import org.wso2.carbon.user.core.UserStoreException;
 
-
 /**
  * This is an implementation of TenantMgtListener. This is used
  * to generate SCIM attributes for tenant admin users.
@@ -36,6 +35,14 @@ public class SCIMTenantMgtListener extends AbstractIdentityTenantMgtListener {
 
     @Override
     public void onTenantInitialActivation(int tenantId) throws StratosException {
+
+        boolean isEnabled = isEnable();
+        if (!isEnabled) {
+            if (log.isDebugEnabled()) {
+                log.debug("SCIMTenantMgtListener is fired for Tenant ID : " + tenantId);
+            }
+            return;
+        }
         //Update admin user attributes.
         try {
             AdminAttributeUtil.updateAdminUser(tenantId, false);
