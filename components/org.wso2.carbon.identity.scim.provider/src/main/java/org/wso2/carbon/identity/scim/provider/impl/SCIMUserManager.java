@@ -1893,8 +1893,8 @@ public class SCIMUserManager implements UserManager {
                 .USER_NAME_URI)) || claim.equals(claimMappings.get(SCIMConstants.ROLES_URI)) || claim.equals
                 (claimMappings.get(SCIMConstants.META_CREATED_URI)) || claim.equals(claimMappings.get(SCIMConstants
                 .META_LAST_MODIFIED_URI)) || claim.equals(claimMappings.get(SCIMConstants.META_LOCATION_URI)) ||
-                claim.equals(claimMappings.get(SCIMConstants.NAME_FAMILY_NAME_URI)) || claim.contains
-                (UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI);
+                claim.equals(claimMappings.get(SCIMConstants.NAME_FAMILY_NAME_URI)) || claim.equals(claimMappings
+                .get(SCIMConstants.GROUPS_URI)) || claim.contains(UserCoreConstants.ClaimTypeURIs.IDENTITY_CLAIM_URI);
     }
 }
 
