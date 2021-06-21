@@ -23,13 +23,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.CarbonConstants;
+import org.wso2.carbon.base.ServerConfiguration;
+import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.claim.metadata.mgt.ClaimMetadataHandler;
 import org.wso2.carbon.identity.claim.metadata.mgt.exception.ClaimMetadataException;
-import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
-import org.wso2.carbon.base.ServerConfiguration;
-import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.scim.common.group.SCIMGroupHandler;
@@ -39,6 +39,7 @@ import org.wso2.carbon.user.core.UserCoreConstants;
 import org.wso2.carbon.user.core.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.user.core.util.UserCoreUtil;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.charon.core.schema.SCIMConstants;
 
 import java.text.SimpleDateFormat;
@@ -221,7 +222,12 @@ public class SCIMCommonUtils {
                     (UserStoreManager) SCIMCommonComponentHolder.getRealmService().
                             getTenantUserRealm(superTenantId).getUserStoreManager();
 
-            if (userStoreManager.isSCIMEnabled()) {
+            IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty(
+                    "org.wso2.carbon.user.core.listener.UserOperationEventListener",
+                    "org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener"
+            );
+
+            if (identityEventListenerConfig.getEnable().equals("true") && userStoreManager.isSCIMEnabled()) {
                 // Get admin user name from claim utils.
                 String adminUsername = ClaimsMgtUtil.getAdminUserNameFromTenantId(IdentityTenantUtil.getRealmService(),
                         superTenantId);
@@ -240,7 +246,7 @@ public class SCIMCommonUtils {
                     claimsList.put(SCIMConstants.META_CREATED_URI, createdDate);
                     claimsList.put(SCIMConstants.META_LAST_MODIFIED_URI, createdDate);
                     userStoreManager.setUserClaimValues(adminUsername, claimsList, UserCoreConstants.DEFAULT_PROFILE);
-                    
+
                     addAdminGroup(userStoreManager);
                 }
             }
