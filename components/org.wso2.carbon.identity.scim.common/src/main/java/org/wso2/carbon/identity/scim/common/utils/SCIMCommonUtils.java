@@ -227,7 +227,8 @@ public class SCIMCommonUtils {
                     "org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener"
             );
 
-            if ("true".equals(identityEventListenerConfig.getEnable()) && userStoreManager.isSCIMEnabled()) {
+            if (identityEventListenerConfig != null &&
+                    "true".equals(identityEventListenerConfig.getEnable()) && userStoreManager.isSCIMEnabled()) {
                 // Get admin user name from claim utils.
                 String adminUsername = ClaimsMgtUtil.getAdminUserNameFromTenantId(IdentityTenantUtil.getRealmService(),
                         superTenantId);

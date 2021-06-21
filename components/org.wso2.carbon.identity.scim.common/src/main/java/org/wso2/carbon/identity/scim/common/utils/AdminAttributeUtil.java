@@ -74,7 +74,8 @@ public class AdminAttributeUtil {
             );
 
             //User store level property to enable/disable SCIM
-            if ("true".equals(identityEventListenerConfig.getEnable()) && userStoreManager.isSCIMEnabled()) {
+            if (identityEventListenerConfig != null &&
+                    "true".equals(identityEventListenerConfig.getEnable()) && userStoreManager.isSCIMEnabled()) {
                 String adminUsername = ClaimsMgtUtil.getAdminUserNameFromTenantId(IdentityTenantUtil.getRealmService(),
                         tenantId);
                 //Validate for existing SCIM ID before do the update for admin user.
