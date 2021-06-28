@@ -23,6 +23,7 @@ package org.wso2.carbon.identity.scim.common.utils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.model.IdentityEventListenerConfig;
 import org.wso2.carbon.identity.core.util.IdentityTenantUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.scim.common.group.SCIMGroupHandler;
@@ -64,20 +65,27 @@ public class AdminAttributeUtil {
                             getTenantUserRealm(tenantId).getUserStoreManager();
             if (log.isDebugEnabled()) {
                 log.debug("SCIM enable in Userstore level : " + userStoreManager.isSCIMEnabled() + ", for "
-                          + "Tenant ID : " + tenantId + ", validating for the existing SCIM ID : " + validateSCIMID);
+                        + "Tenant ID : " + tenantId + ", validating for the existing SCIM ID : " + validateSCIMID);
             }
+
+            IdentityEventListenerConfig identityEventListenerConfig = IdentityUtil.readEventListenerProperty(
+                    "org.wso2.carbon.user.core.listener.UserOperationEventListener",
+                    "org.wso2.carbon.identity.scim.common.listener.SCIMUserOperationListener"
+            );
+
             //User store level property to enable/disable SCIM
-            if (userStoreManager.isSCIMEnabled()) {
+            if (identityEventListenerConfig != null &&
+                    "true".equals(identityEventListenerConfig.getEnable()) && userStoreManager.isSCIMEnabled()) {
                 String adminUsername = ClaimsMgtUtil.getAdminUserNameFromTenantId(IdentityTenantUtil.getRealmService(),
-                                                                                  tenantId);
+                        tenantId);
                 //Validate for existing SCIM ID before do the update for admin user.
                 if (validateSCIMID) {
                     String scimId = userStoreManager.getUserClaimValue(adminUsername, SCIMConstants.ID_URI,
-                                                                        UserCoreConstants.DEFAULT_PROFILE);
+                            UserCoreConstants.DEFAULT_PROFILE);
                     if (log.isDebugEnabled()) {
                         log.debug("Existing SCIM ID : " + scimId + " for Admin User : " + adminUsername + " in "
-                                  + "Tenant ID : " +
-                                  tenantId);
+                                + "Tenant ID : " +
+                                tenantId);
                     }
                     if (StringUtils.isEmpty(scimId)) {
                         //Generate User Attributes.
