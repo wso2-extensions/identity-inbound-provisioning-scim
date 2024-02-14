@@ -890,6 +890,7 @@ public class SCIMUserManager implements UserManager {
         }
         Group group = null;
         try {
+            SCIMGroupHandler groupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
             String groupName;
              /* Since no userstore domain available at the moment we are using the primary userstore domain for getting
              default configs since we are not encouraging to disable group id enable feature. */
@@ -898,10 +899,15 @@ public class SCIMUserManager implements UserManager {
                 if (retrievedGroup != null && StringUtils.isNotBlank(retrievedGroup.getGroupName())) {
                     groupName = retrievedGroup.getGroupName();
                 } else {
-                    groupName = null;
+                    // Check whether is this a role.
+                    groupName = groupHandler.getGroupName(id);
+                    if (StringUtils.isNotBlank(groupName)) {
+                        return getRoleWithName(groupName);
+                    }
+                    //Returning null will send a resource not found error to client by Charon.
+                    return null;
                 }
             } else {
-                SCIMGroupHandler groupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
                 // Get group name by Id.
                 groupName = groupHandler.getGroupName(id);
             }
@@ -1470,7 +1476,16 @@ public class SCIMUserManager implements UserManager {
                 if (isUniqueGroupIdEnabled(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME)) {
                     // Get group name by id.
                     org.wso2.carbon.user.core.common.Group retrievedGroup = carbonUM.getGroup(groupId, null);
-                    groupName = retrievedGroup.getGroupName();
+                    if (retrievedGroup != null && StringUtils.isNotBlank(retrievedGroup.getGroupName())) {
+                        groupName = retrievedGroup.getGroupName();
+                    } else {
+                        // Check whether is this a role.
+                        groupName = groupHandler.getGroupName(groupId);
+                        String domainFromName = IdentityUtil.extractDomainFromName(groupName);
+                        if (!isInternalOrApplicationGroup(domainFromName)) {
+                            groupName = null;
+                        }
+                    }
                 } else {
                     //Get group name by id.
                     groupName = groupHandler.getGroupName(groupId);
@@ -1636,6 +1651,40 @@ public class SCIMUserManager implements UserManager {
         String[] userNames = carbonUM.getUserListOfRole(groupName);
 
         //get the ids of the users and set them in the group with id + display name
+        if (userNames != null && userNames.length != 0) {
+            for (String userName : userNames) {
+                String userId = carbonUM.getUserClaimValue(userName, SCIMConstants.ID_URI, null);
+                group.setMember(userId, userName);
+            }
+        }
+        return group;
+    }
+
+    /**
+     * Get the full group with all the details including users.
+     *
+     * @param roleName Role Name.
+     * @return Role.
+     * @throws CharonException If s charon error occurred while getting the role.
+     * @throws org.wso2.carbon.user.core.UserStoreException If userstore exception occurs.
+     * @throws IdentitySCIMException If SCIM exception occurs.
+     */
+    private Group getRoleWithName(String roleName) throws CharonException, org.wso2.carbon.user.core.UserStoreException,
+            IdentitySCIMException {
+
+        String domainFromName = IdentityUtil.extractDomainFromName(roleName);
+        // Check whether is this a role.
+        if (!isInternalOrApplicationGroup(domainFromName)) {
+            return null;
+        }
+        Group group = new Group();
+        group.setDisplayName(roleName);
+        // Get other group attributes and set.
+        SCIMGroupHandler groupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
+        group = groupHandler.getGroupWithAttributes(group, roleName);
+        String[] userNames = carbonUM.getUserListOfRole(roleName);
+
+        // Get the ids of the users and set them in the group with id + display name.
         if (userNames != null && userNames.length != 0) {
             for (String userName : userNames) {
                 String userId = carbonUM.getUserClaimValue(userName, SCIMConstants.ID_URI, null);
