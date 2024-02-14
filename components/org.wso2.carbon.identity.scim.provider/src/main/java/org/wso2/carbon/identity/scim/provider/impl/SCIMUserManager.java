@@ -71,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,14 +84,15 @@ public class SCIMUserManager implements UserManager {
     public static final String INTERNAL_DOMAIN = "Internal";
     private static final Log log = LogFactory.getLog(SCIMUserManager.class);
     private static final String USER_ID_CLAIM_URI = "http://wso2.org/claims/userid";
-    private UserStoreManager carbonUM = null;
+    private AbstractUserStoreManager carbonUM = null;
     private ClaimManager carbonClaimManager = null;
     private String consumerName;
     private boolean isBulkUserAdd = false;
 
     public SCIMUserManager(UserStoreManager carbonUserStoreManager, String userName,
                            ClaimManager claimManager) {
-        carbonUM = carbonUserStoreManager;
+
+        carbonUM = (AbstractUserStoreManager) carbonUserStoreManager;
         consumerName = userName;
         carbonClaimManager = claimManager;
     }
@@ -747,11 +749,11 @@ public class SCIMUserManager implements UserManager {
             if (log.isDebugEnabled()) {
                 log.debug("Creating group: " + group.getDisplayName());
             }
+            String domainName = "";
             try {
                 //modify display name if no domain is specified, in order to support multiple user store feature
                 String originalName = group.getDisplayName();
                 String roleNameWithDomain = null;
-                String domainName = "";
                 try {
                     if (getUserStoreDomainFromSP() != null) {
                         domainName = getUserStoreDomainFromSP();
@@ -827,29 +829,38 @@ public class SCIMUserManager implements UserManager {
                         }
                     }
 
-                    //add other scim attributes in the identity DB since user store doesn't support some attributes.
-                    SCIMGroupHandler scimGroupHandler =
-                            new SCIMGroupHandler(
-                                    carbonUM.getTenantId());
-                    scimGroupHandler.createSCIMAttributes(group);
+                    if (!isUniqueGroupIdEnabled(domainName)) {
+                        // Add other scim attributes in the identity DB since user store doesn't support some attributes.
+                        SCIMGroupHandler scimGroupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
+                        scimGroupHandler.createSCIMAttributes(group);
+                    }
                     carbonUM.addRole(group.getDisplayName(),
                             members.toArray(new String[members.size()]), null, false);
                     if (log.isDebugEnabled()) {
                         log.debug("Group: " + group.getDisplayName() + " is created through SCIM.");
                     }
                 } else {
-                    //add other scim attributes in the identity DB since user store doesn't support some attributes.
-                    SCIMGroupHandler scimGroupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
-                    scimGroupHandler.createSCIMAttributes(group);
+                    if (!isUniqueGroupIdEnabled(domainName)) {
+                        // Add other scim attributes in the identity DB since user store doesn't support some attributes.
+                        SCIMGroupHandler scimGroupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
+                        scimGroupHandler.createSCIMAttributes(group);
+                    }
                     carbonUM.addRole(group.getDisplayName(), null, null, false);
                     if (log.isDebugEnabled()) {
                         log.debug("Group: " + group.getDisplayName() + " is created through SCIM.");
                     }
                 }
+                if (isUniqueGroupIdEnabled(domainName)) {
+                    org.wso2.carbon.user.core.common.Group retrievedGroup =
+                            carbonUM.getGroupByGroupName(group.getDisplayName(), null);
+                    return buildGroup(retrievedGroup);
+                }
             } catch (UserStoreException e) {
                 try {
-                    SCIMGroupHandler scimGroupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
-                    scimGroupHandler.deleteGroupAttributes(group.getDisplayName());
+                    if (!isUniqueGroupIdEnabled(domainName)) {
+                        SCIMGroupHandler scimGroupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
+                        scimGroupHandler.deleteGroupAttributes(group.getDisplayName());
+                    }
                 } catch (UserStoreException | IdentitySCIMException ex) {
                     log.error("Error occurred while doing rollback operation of the SCIM table entry for role: " + group.getDisplayName(), ex);
                     throw new CharonException("Error occurred while doing rollback operation of the SCIM table entry for role: " + group.getDisplayName(), e);
@@ -879,9 +890,21 @@ public class SCIMUserManager implements UserManager {
         }
         Group group = null;
         try {
-            SCIMGroupHandler groupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
-            //get group name by Id
-            String groupName = groupHandler.getGroupName(id);
+            String groupName;
+             /* Since no userstore domain available at the moment we are using the primary userstore domain for getting
+             default configs since we are not encouraging to disable group id enable feature. */
+            if (isUniqueGroupIdEnabled(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME)) {
+                org.wso2.carbon.user.core.common.Group retrievedGroup = carbonUM.getGroup(id, null);
+                if (retrievedGroup != null && StringUtils.isNotBlank(retrievedGroup.getGroupName())) {
+                    groupName = retrievedGroup.getGroupName();
+                } else {
+                    groupName = null;
+                }
+            } else {
+                SCIMGroupHandler groupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
+                // Get group name by Id.
+                groupName = groupHandler.getGroupName(id);
+            }
 
             if (groupName != null) {
                 group = getGroupWithName(groupName);
@@ -900,12 +923,20 @@ public class SCIMUserManager implements UserManager {
     @Override
     public List<Group> listGroups() throws CharonException {
         List<Group> groupList = new ArrayList<>();
+        Set<String> roleNames;
         try {
-            SCIMGroupHandler groupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
-            Set<String> roleNames = groupHandler.listSCIMRoles();
+             /* Since no userstore domain available at the moment we are using the primary userstore domain for getting
+             default configs since we are not encouraging to disable group id enable feature. */
+            if (isUniqueGroupIdEnabled(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME)) {
+                roleNames = new HashSet<>(Arrays.asList(carbonUM.getRoleNames()));
+            } else {
+                SCIMGroupHandler groupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
+                roleNames = groupHandler.listSCIMRoles();
+            }
+
             for (String roleName : roleNames) {
                 Group group = this.getGroupOnlyWithMetaAttributes(roleName);
-                if (group.getId() != null) {
+                if (group != null && group.getId() != null) {
                     groupList.add(group);
                 }
             }
@@ -1432,9 +1463,18 @@ public class SCIMUserManager implements UserManager {
                 about the provisioning route.*/
                 SCIMCommonUtils.setThreadLocalIsManagedThroughSCIMEP(true);
 
-                //get group name by id
+                String groupName;
                 SCIMGroupHandler groupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
-                String groupName = groupHandler.getGroupName(groupId);
+                /* Since no userstore domain available at the moment we are using the primary userstore domain for
+                getting default configs since we are not encouraging to disable group id enable feature. */
+                if (isUniqueGroupIdEnabled(UserCoreConstants.PRIMARY_DEFAULT_DOMAIN_NAME)) {
+                    // Get group name by id.
+                    org.wso2.carbon.user.core.common.Group retrievedGroup = carbonUM.getGroup(groupId, null);
+                    groupName = retrievedGroup.getGroupName();
+                } else {
+                    //Get group name by id.
+                    groupName = groupHandler.getGroupName(groupId);
+                }
 
                 if (groupName != null) {
                     String userStoreDomainFromSP = null;
@@ -1584,7 +1624,15 @@ public class SCIMUserManager implements UserManager {
         }
 
         Group group = new Group();
-        group.setDisplayName(groupName);
+        if (isUniqueGroupIdEnabled(userStoreDomainName)) {
+            org.wso2.carbon.user.core.common.Group retrievedGroup = carbonUM.getGroupByGroupName(groupName, null);
+            group = buildGroup(retrievedGroup);
+        } else {
+            group.setDisplayName(groupName);
+            // Get other group attributes and set.
+            SCIMGroupHandler groupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
+            group = groupHandler.getGroupWithAttributes(group, groupName);
+        }
         String[] userNames = carbonUM.getUserListOfRole(groupName);
 
         //get the ids of the users and set them in the group with id + display name
@@ -1594,10 +1642,47 @@ public class SCIMUserManager implements UserManager {
                 group.setMember(userId, userName);
             }
         }
-        //get other group attributes and set.
-        SCIMGroupHandler groupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
-        group = groupHandler.getGroupWithAttributes(group, groupName);
         return group;
+    }
+
+    /**
+     * Build group from user core group object.
+     *
+     * @param group Group object returned from the user core.
+     * @return Group object.
+     * @throws CharonException If an error occurred while building the group object.
+     */
+    private Group buildGroup(org.wso2.carbon.user.core.common.Group group) throws CharonException {
+
+        if (group == null) {
+            return null;
+        }
+        String groupName = group.getGroupName();
+        Group scimGroup = new Group();
+        scimGroup.setDisplayName(groupName);
+        scimGroup.setId(group.getGroupID());
+        if (StringUtils.isBlank(group.getLocation())) {
+            // Location has not been sent from the user core. Therefore, we need to use the group id to build location.
+            scimGroup.setLocation(SCIMCommonUtils.getSCIMGroupURL(group.getGroupID()));
+        } else {
+            scimGroup.setLocation(group.getLocation());
+        }
+        // Validate dates.
+        if (StringUtils.isNotBlank(group.getCreatedDate())) {
+            scimGroup.setCreatedDate(AttributeUtil.parseDateTime(group.getCreatedDate()));
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Group created date is not specified for group: " + groupName);
+            }
+        }
+        if (StringUtils.isNotBlank(group.getLastModifiedDate())) {
+            scimGroup.setLastModified(AttributeUtil.parseDateTime(group.getLastModifiedDate()));
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Group last modified date is not specified for group: " + groupName);
+            }
+        }
+        return scimGroup;
     }
 
     /**
@@ -1612,11 +1697,20 @@ public class SCIMUserManager implements UserManager {
     private Group getGroupOnlyWithMetaAttributes(String groupName)
             throws CharonException, IdentitySCIMException,
             org.wso2.carbon.user.core.UserStoreException {
+
         //get other group attributes and set.
-        Group group = new Group();
-        group.setDisplayName(groupName);
-        SCIMGroupHandler groupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
-        return groupHandler.getGroupWithAttributes(group, groupName);
+        String userStoreDomainName = IdentityUtil.extractDomainFromName(groupName);
+        if (isUniqueGroupIdEnabled(userStoreDomainName)) {
+            org.wso2.carbon.user.core.common.Group retrievedGroup = carbonUM.getGroupByGroupName(groupName, null);
+            Group group = buildGroup(retrievedGroup);
+            group.setDisplayName(groupName);
+            return group;
+        } else {
+            Group group = new Group();
+            group.setDisplayName(groupName);
+            SCIMGroupHandler groupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
+            return groupHandler.getGroupWithAttributes(group, groupName);
+        }
     }
 
     /**
@@ -1838,6 +1932,20 @@ public class SCIMUserManager implements UserManager {
             } catch (UserStoreException e) {
                 log.error("Error while evaluating isSCIMEnalbed for user store " + userstoreName, e);
             }
+        }
+        return false;
+    }
+
+    /**
+     * This method will return whether Unique group id is enabled or not for a particular userstore.
+     * @param userstoreName user store name.
+     * @return whether Unique group id is enabled or not for the particular user store.
+     */
+    public boolean isUniqueGroupIdEnabled(String userstoreName) {
+
+        UserStoreManager userStoreManager = carbonUM.getSecondaryUserStoreManager(userstoreName);
+        if (userStoreManager != null && userStoreManager instanceof AbstractUserStoreManager) {
+            return ((AbstractUserStoreManager) userStoreManager).isUniqueGroupIdEnabled();
         }
         return false;
     }
