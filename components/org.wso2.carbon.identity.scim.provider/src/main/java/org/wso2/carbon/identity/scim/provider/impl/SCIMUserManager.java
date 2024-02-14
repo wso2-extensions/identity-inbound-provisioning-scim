@@ -899,7 +899,7 @@ public class SCIMUserManager implements UserManager {
                 if (retrievedGroup != null && StringUtils.isNotBlank(retrievedGroup.getGroupName())) {
                     groupName = retrievedGroup.getGroupName();
                 } else {
-                    // Check weather is this a role.
+                    // Check whether is this a role.
                     groupName = groupHandler.getGroupName(id);
                     if (StringUtils.isNotBlank(groupName)) {
                         return getRoleWithName(groupName);
@@ -1479,7 +1479,7 @@ public class SCIMUserManager implements UserManager {
                     if (retrievedGroup != null && StringUtils.isNotBlank(retrievedGroup.getGroupName())) {
                         groupName = retrievedGroup.getGroupName();
                     } else {
-                        // Check weather is this a role.
+                        // Check whether is this a role.
                         groupName = groupHandler.getGroupName(groupId);
                         String domainFromName = IdentityUtil.extractDomainFromName(groupName);
                         if (!isInternalOrApplicationGroup(domainFromName)) {
@@ -1673,7 +1673,7 @@ public class SCIMUserManager implements UserManager {
             IdentitySCIMException {
 
         String domainFromName = IdentityUtil.extractDomainFromName(roleName);
-        // Check weather is this a role.
+        // Check whether is this a role.
         if (!isInternalOrApplicationGroup(domainFromName)) {
             return null;
         }
