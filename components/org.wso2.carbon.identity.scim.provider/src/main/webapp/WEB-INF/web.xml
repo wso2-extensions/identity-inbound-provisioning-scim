@@ -160,8 +160,10 @@
             </param-value>
         </init-param>
         <init-param>
-            <param-name>org.apache.cxf.jaxrs.allow.http.method.override</param-name>
-            <param-value>true</param-value>
+            <param-name>jaxrs.properties</param-name>
+            <param-value>
+                org.apache.cxf.jaxrs.allow.http.method.override=true
+            </param-value>
         </init-param>
         <init-param>
             <param-name>jaxrs.inInterceptors</param-name>
