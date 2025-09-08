@@ -29,6 +29,8 @@ import org.wso2.carbon.identity.application.common.model.ProvisioningServiceProv
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.oauth.common.OAuthConstants;
+import org.wso2.carbon.identity.oauth.config.OAuthServerConfiguration;
 import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
 import org.wso2.carbon.identity.oauth2.OAuth2TokenValidationService;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2ClientApplicationDTO;
@@ -238,6 +240,23 @@ public class OAuthHandler implements SCIMAuthenticationHandler {
         }
     }
 
+    private long getAccessTokenExpirationTime(AccessTokenDO accessTokenDO) {
+
+        long expiryTime = OAuth2Util.getAccessTokenExpireMillis(accessTokenDO, false);
+
+        if (OAuthConstants.UserType.APPLICATION_USER.equals(accessTokenDO.getTokenType())
+                && OAuthServerConfiguration.getInstance().getUserAccessTokenValidityPeriodInSeconds() < 0) {
+            return Long.MAX_VALUE;
+        } else if (OAuthConstants.UserType.APPLICATION.equals(accessTokenDO.getTokenType())
+                && OAuthServerConfiguration.getInstance().getApplicationAccessTokenValidityPeriodInSeconds() < 0) {
+            return Long.MAX_VALUE;
+        } else if (expiryTime < 0) {
+            return Long.MAX_VALUE;
+        }
+
+        return expiryTime / 1000;
+    }
+
     private OAuth2ClientApplicationDTO getOauthValidationResponse(String accessTokenIdentifier,
                                                                   OAuth2IntrospectionResponseDTO oAuth2IntrospectionResponseDTO)
             throws IdentityOAuth2Exception {
@@ -245,9 +264,10 @@ public class OAuthHandler implements SCIMAuthenticationHandler {
         OAuth2TokenValidationResponseDTO responseDTO = new OAuth2TokenValidationResponseDTO();
         responseDTO.setValid(oAuth2IntrospectionResponseDTO.isActive());
         responseDTO.setAuthorizedUser(oAuth2IntrospectionResponseDTO.getUsername());
-        responseDTO.setScope(responseDTO.getScope());
         AccessTokenDO accessTokenDO = OAuth2Util.findAccessToken(accessTokenIdentifier, false);
-        responseDTO.setExpiryTime(OAuth2Util.getAccessTokenExpirationTime(accessTokenDO));
+        responseDTO.setExpiryTime(getAccessTokenExpirationTime(accessTokenDO));
+        responseDTO.setTokenBinding(accessTokenDO.getTokenBinding());
+        responseDTO.setScope(accessTokenDO.getScope());
 
         OAuth2ClientApplicationDTO oauthValidationResponse = new OAuth2ClientApplicationDTO();
         oauthValidationResponse.setConsumerKey(oAuth2IntrospectionResponseDTO.getClientId());
