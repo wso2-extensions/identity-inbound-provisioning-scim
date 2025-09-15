@@ -26,7 +26,6 @@ public class SCIMCommonConstants {
     public static final String IS_ROLE_NAME_CHANGED_ON_UPDATE = "ISRoleNameChangedOnUpdate";
     public static final String SCIM_COMPLEX_MULTIVALUED_ATTRIBUTE_SUPPORT_ENABLED = "SCIM" +
             ".ComplexMultiValuedAttributeSupportEnabled";
-    public static final String SCIM_RESTRICT_FEDERATED_USER_ACCESS = "SCIM.RestrictFederatedUserAccess";
     public static final String OLD_GROUP_NAME = "OldGroupName";
     /*This permission is required to see the 'my scim providers ui' to configure providers per account
     * and also to authorize provisioning requests.*/
