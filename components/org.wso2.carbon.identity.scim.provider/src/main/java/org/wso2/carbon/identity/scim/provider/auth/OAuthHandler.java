@@ -24,13 +24,22 @@ import org.apache.axis2.context.ConfigurationContextFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ProvisioningServiceProviderType;
 import org.wso2.carbon.identity.application.common.model.ThreadLocalProvisioningServiceProvider;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationManagementUtil;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.oauth.common.OAuthConstants;
+import org.wso2.carbon.identity.oauth.config.OAuthServerConfiguration;
+import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
 import org.wso2.carbon.identity.oauth2.OAuth2TokenValidationService;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2ClientApplicationDTO;
+import org.wso2.carbon.identity.oauth2.dto.OAuth2IntrospectionResponseDTO;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationRequestDTO;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
+import org.wso2.carbon.identity.oauth2.model.AccessTokenDO;
+import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
+import org.wso2.carbon.identity.scim.common.utils.SCIMCommonConstants;
 import org.wso2.carbon.identity.scim.provider.util.SCIMProviderConstants;
 import org.wso2.carbon.user.core.service.RealmService;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
@@ -181,8 +190,27 @@ public class OAuthHandler implements SCIMAuthenticationHandler {
             oauthValidationRequest.setAccessToken(accessToken);
 
             OAuth2TokenValidationService oauthValidationService = new OAuth2TokenValidationService();
-            OAuth2ClientApplicationDTO oauthValidationResponse = oauthValidationService
-                    .findOAuthConsumerIfTokenIsValid(oauthValidationRequest);
+            OAuth2ClientApplicationDTO oauthValidationResponse;
+
+            String restrictFederatedUserAccess =
+                    IdentityUtil.getProperty(SCIMCommonConstants.SCIM_RESTRICT_FEDERATED_USER_ACCESS);
+
+            if (Boolean.parseBoolean(restrictFederatedUserAccess)) {
+                OAuth2IntrospectionResponseDTO oAuth2IntrospectionResponseDTO =
+                        oauthValidationService.buildIntrospectionResponse(oauthValidationRequest);
+                oauthValidationResponse =
+                        oauthValidationService.buildClientAppDTO(accessTokenIdentifier, oAuth2IntrospectionResponseDTO);
+
+                // Restrict federated users from accessing SCIM endpoints.
+                AuthenticatedUser authorizedUser = oAuth2IntrospectionResponseDTO.getAuthorizedUser();
+                if (authorizedUser != null && authorizedUser.isFederatedUser()) {
+                    log.debug("Federated user is restricted from accessing SCIM endpoint.");
+                    oauthValidationResponse.getAccessTokenValidationResponse().setValid(false);
+                }
+            } else {
+                oauthValidationResponse =
+                        oauthValidationService.findOAuthConsumerIfTokenIsValid(oauthValidationRequest);
+            }
 
             return oauthValidationResponse;
         }
