@@ -62,8 +62,10 @@ public class AttributeMapperTest {
         claimsMapDefined.put(SCIMConstants.USER_NAME_URI, uid);
         claimsMapDefined.put(SCIMConstants.NAME_GIVEN_NAME_URI, givenName);
         claimsMapDefined.put(SCIMConstants.NAME_FAMILY_NAME_URI, sn);
-        claimsMapDefined.put(SCIMConstants.META_CREATED_URI, createdDate);
-        claimsMapDefined.put(SCIMConstants.META_LAST_MODIFIED_URI, lastModifiedDate);
+        claimsMapDefined.put(SCIMConstants.META_CREATED_URI,
+                AttributeUtil.formatDateTimeLocal(AttributeUtil.parseDateTime(createdDate)));
+        claimsMapDefined.put(SCIMConstants.META_LAST_MODIFIED_URI,
+                AttributeUtil.formatDateTimeLocal(AttributeUtil.parseDateTime(lastModifiedDate)));
         claimsMapDefined.put(SCIMConstants.META_LOCATION_URI, location);
         claimsMapDefined.put(SCIMConstants.WORK_EMAIL_URI, workEmail);
         claimsMapDefined.put(SCIMConstants.HOME_EMAIL_URI, homeEmail);
@@ -79,10 +81,12 @@ public class AttributeMapperTest {
         //go though scim object and see if they exist
         Assert.assertEquals(id, user.getId());
         Assert.assertEquals(uid, user.getUserName());
-        Assert.assertEquals(createdDate,AttributeUtil.formatDateTime(user.getCreatedDate()));
+        Assert.assertEquals(AttributeUtil.formatDateTime(AttributeUtil.parseDateTime(createdDate)),
+                AttributeUtil.formatDateTime(user.getCreatedDate()));
         Assert.assertEquals(givenName,user.getGivenName());
         Assert.assertEquals(sn,user.getFamilyName());
-        Assert.assertEquals(lastModifiedDate, AttributeUtil.formatDateTime(user.getLastModified()));
+        Assert.assertEquals(AttributeUtil.formatDateTime(AttributeUtil.parseDateTime(lastModifiedDate)),
+                AttributeUtil.formatDateTime(user.getLastModified()));
         Assert.assertEquals(location,user.getLocation());
         Assert.assertEquals(workEmail,user.getWorkEmail());
         Assert.assertEquals(homeEmail,user.getHomeEmail());
